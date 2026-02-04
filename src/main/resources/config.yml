@@ -1,0 +1,18 @@
+﻿settings:
+  language: "en"
+  debug: false
+providers:
+  priority:
+    - "oraxen"
+    - "itemsadder"
+    - "nexo"
+    - "modelengine"
+    - "vanilla"
+gui:
+  roll:
+    default-size: 27
+    duration-ticks: 60
+    tick-interval: 2
+sounds:
+  roll: "ui.button.click"
+  reward: "entity.player.levelup"

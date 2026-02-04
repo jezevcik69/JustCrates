@@ -1,0 +1,20 @@
+﻿name: JustCrates
+version: '${version}'
+main: dev.justteam.justCrates.JustCrates
+api-version: '1.21'
+softdepend:
+  - Oraxen
+  - ItemsAdder
+  - Nexo
+  - ModelEngine
+commands:
+  justcrates:
+    description: JustCrates main command
+    usage: /<command>
+    aliases: [crates]
+  key:
+    description: Give JustCrates key
+    usage: /<command> <id> [player] [amount]
+permissions:
+  justcrates.admin:
+    default: op

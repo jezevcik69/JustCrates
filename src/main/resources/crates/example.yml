@@ -1,0 +1,26 @@
+﻿id: "starter"
+type: "GUI"
+key: "starter_key"
+display:
+  name: "&aStarter Crate"
+  lore:
+    - "&7Example crate"
+roll:
+  size: 27
+  title: "&aStarter Crate"
+  duration-ticks: 60
+  tick-interval: 2
+rewards:
+  - type: "COMMAND"
+    weight: 70
+    commands:
+      - "give %player% minecraft:diamond 1"
+  - type: "ITEM"
+    weight: 30
+    item:
+      material: "DIAMOND_SWORD"
+      amount: 1
+      name: "&bBlade"
+      lore:
+        - "&7Shiny"
+      custom-model-data: 0
