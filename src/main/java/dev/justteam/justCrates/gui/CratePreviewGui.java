@@ -18,9 +18,7 @@ public final class CratePreviewGui {
 
     public static void open(Player player, CrateDefinition crate) {
         List<ItemStack> rewards = RewardPreview.buildPreview(crate);
-        int rows = Math.max(1, (int) Math.ceil(rewards.size() / 7.0));
-        rows = Math.min(6, rows);
-        int size = rows * 9;
+        int size = 27;
 
         CratePreviewHolder holder = new CratePreviewHolder(crate.getId());
         Inventory inv = Bukkit.createInventory(holder, size, Text.color(crate.getName()));
@@ -28,7 +26,7 @@ public final class CratePreviewGui {
         fill(inv, Material.GRAY_STAINED_GLASS_PANE, " ");
 
         int index = 0;
-        for (int row = 0; row < rows; row++) {
+        for (int row = 0; row < 3; row++) {
             for (int col = 1; col <= 7; col++) {
                 if (index >= rewards.size()) {
                     break;

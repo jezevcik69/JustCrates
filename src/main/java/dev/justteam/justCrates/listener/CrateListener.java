@@ -44,7 +44,7 @@ public final class CrateListener implements Listener {
 
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             event.setCancelled(true);
-            plugin.getCrateService().openCrate(event.getPlayer(), crate);
+            plugin.getCrateService().openCrate(event.getPlayer(), crate, event.getClickedBlock());
         }
     }
 

@@ -11,10 +11,12 @@ import dev.justteam.justCrates.provider.ProviderRegistry;
 import dev.justteam.justCrates.reward.RewardDefinition;
 import dev.justteam.justCrates.reward.RewardType;
 import org.bukkit.Bukkit;
+import org.bukkit.block.Block;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.Vector;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -115,12 +117,13 @@ public final class CrateService {
         return new ArrayList<>(registry.all());
     }
 
-    public void openCrate(Player player, CrateDefinition crate) {
+    public void openCrate(Player player, CrateDefinition crate, Block block) {
         if (crate == null) {
             return;
         }
+
+        boolean consumed = false;
         if (!crate.getKeyId().isEmpty()) {
-            boolean consumed = false;
             ItemStack hand = player.getInventory().getItemInMainHand();
             if (keyService.isKey(hand, crate.getKeyId())) {
                 hand.setAmount(hand.getAmount() - 1);
@@ -128,19 +131,29 @@ public final class CrateService {
             } else if (virtualKeyService != null && virtualKeyService.takeKeys(player.getUniqueId(), crate.getKeyId(), 1)) {
                 consumed = true;
             }
+        }
 
-            if (!consumed) {
-                String keyId = crate.getKeyId();
-                player.sendMessage(Text.color("&cYou don't have the required key: &f" + keyId));
-                player.sendTitle(
+        if (!consumed) {
+            String keyId = crate.getKeyId();
+            if (keyId.isEmpty()) {
+                keyId = "N/A";
+            }
+            player.sendMessage(Text.color("&cYou don't have the required key: &f" + keyId));
+            player.sendTitle(
                     Text.color("&cYou don't have a key"),
                     Text.color("&7Required: &f" + keyId),
                     10,
                     40,
                     10
-                );
-                return;
+            );
+
+            if (block != null) {
+                Vector knockback = player.getLocation().toVector().subtract(block.getLocation().toVector()).normalize();
+                knockback.multiply(0.5);
+                knockback.setY(0.2);
+                player.setVelocity(knockback);
             }
+            return;
         }
 
         RollGui.open(plugin, player, crate, this);
