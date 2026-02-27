@@ -16,6 +16,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.io.File;
@@ -138,19 +139,29 @@ public final class CrateService {
             if (keyId.isEmpty()) {
                 keyId = "N/A";
             }
-            player.sendMessage(Text.color("&cYou don't have the required key: &f" + keyId));
+            player.sendMessage(Text.chat("&cYou don't have the required key: &f" + keyId));
             player.sendTitle(
-                    Text.color("&cYou don't have a key"),
-                    Text.color("&7Required: &f" + keyId),
+                    Text.color("&c" + Text.toSmallCaps("You don't have a key")),
+                    Text.color("&7" + Text.toSmallCaps("Required: ") + "&f" + keyId),
                     10,
                     40,
                     10
             );
 
             if (block != null) {
-                Vector knockback = player.getLocation().toVector().subtract(block.getLocation().toVector()).normalize();
-                knockback.multiply(0.5);
-                knockback.setY(0.2);
+                BoundingBox box = block.getBoundingBox();
+                Vector crateCenter = box.getCenter();
+                Vector knockback = player.getLocation().toVector().subtract(crateCenter);
+                knockback.setY(0);
+                if (knockback.lengthSquared() < 0.0001) {
+                    knockback = player.getLocation().getDirection().setY(0).multiply(-1);
+                }
+                if (knockback.lengthSquared() >= 0.0001) {
+                    knockback.normalize().multiply(0.38);
+                } else {
+                    knockback = new Vector(0, 0, 0);
+                }
+                knockback.setY(0.16);
                 player.setVelocity(knockback);
             }
             return;
@@ -196,3 +207,4 @@ public final class CrateService {
         }
     }
 }
+

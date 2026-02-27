@@ -9,12 +9,16 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 
-public final class JustCratesCommand implements CommandExecutor {
+public final class JustCratesCommand implements CommandExecutor, TabCompleter {
 
     private final JustCrates plugin;
 
@@ -31,7 +35,7 @@ public final class JustCratesCommand implements CommandExecutor {
         if (args.length == 0) {
             if (sender instanceof Player player) {
                 if (!sender.hasPermission("justcrates.admin")) {
-                    sender.sendMessage(Text.color("&cNo permission."));
+                    sender.sendMessage(Text.chat("&cNo permission."));
                     return true;
                 }
                 plugin.getEditorService().openMainMenu(player);
@@ -45,7 +49,7 @@ public final class JustCratesCommand implements CommandExecutor {
         switch (sub) {
             case "reload" -> {
                 if (!sender.hasPermission("justcrates.admin")) {
-                    sender.sendMessage(Text.color("&cNo permission."));
+                    sender.sendMessage(Text.chat("&cNo permission."));
                     return true;
                 }
                 plugin.reloadConfig();
@@ -55,10 +59,13 @@ public final class JustCratesCommand implements CommandExecutor {
                 if (plugin.getVirtualKeyService() != null) {
                     plugin.getVirtualKeyService().reload();
                 }
-                sender.sendMessage(Text.color("&aReloaded."));
+                sender.sendMessage(Text.chat("&aReloaded."));
                 return true;
             }
             case "key" -> {
+                if (args.length > 1 && args[1].equalsIgnoreCase("give")) {
+                    return handleCrateKeyGiveCommand(sender, label, args.length > 2 ? slice(args, 2) : new String[0]);
+                }
                 return handleKeyCommand(sender, label, args.length > 1 ? slice(args, 1) : new String[0]);
             }
             case "vkey" -> {
@@ -71,11 +78,11 @@ public final class JustCratesCommand implements CommandExecutor {
 
     private boolean handleKeyCommand(CommandSender sender, String label, String[] args) {
         if (!sender.hasPermission("justcrates.admin")) {
-            sender.sendMessage(Text.color("&cNo permission."));
+            sender.sendMessage(Text.chat("&cNo permission."));
             return true;
         }
         if (args.length < 1) {
-            sender.sendMessage(Text.color("&cUsage: /" + label + " <id> [player] [amount]"));
+            sender.sendMessage(Text.chat("&cUsage: /" + label + " <id> [player] [amount]"));
             return true;
         }
         String id = args[0].toLowerCase(Locale.ROOT);
@@ -84,7 +91,7 @@ public final class JustCratesCommand implements CommandExecutor {
             target = Bukkit.getPlayer(args[1]);
         }
         if (target == null) {
-            sender.sendMessage(Text.color("&cPlayer not found."));
+            sender.sendMessage(Text.chat("&cPlayer not found."));
             return true;
         }
         int amount = 1;
@@ -96,23 +103,23 @@ public final class JustCratesCommand implements CommandExecutor {
         }
         KeyDefinition key = plugin.getKeyService().getKey(id);
         if (key == null) {
-            sender.sendMessage(Text.color("&cKey not found."));
+            sender.sendMessage(Text.chat("&cKey not found."));
             return true;
         }
         ItemStack item = plugin.getKeyService().createKeyItem(key);
         if (item == null) {
-            sender.sendMessage(Text.color("&cFailed to build key item."));
+            sender.sendMessage(Text.chat("&cFailed to build key item."));
             return true;
         }
         item.setAmount(amount);
         target.getInventory().addItem(item);
-        sender.sendMessage(Text.color("&aGave key."));
+        sender.sendMessage(Text.chat("&aGave key."));
         return true;
     }
 
     private boolean handleVirtualKeyCommand(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Text.color("&cOnly players can use this command."));
+            sender.sendMessage(Text.chat("&cOnly players can use this command."));
             return true;
         }
 
@@ -132,18 +139,153 @@ public final class JustCratesCommand implements CommandExecutor {
 
         VirtualKeyService virtualKeyService = plugin.getVirtualKeyService();
         if (plugin.getKeyService().getKey(id) == null) {
-            sender.sendMessage(Text.color("&cKey not found."));
+            sender.sendMessage(Text.chat("&cKey not found."));
             return true;
         }
 
         boolean converted = virtualKeyService.convertFromInventory(player, id, amount);
         if (!converted) {
-            sender.sendMessage(Text.color("&cYou do not have enough keys in inventory."));
+            sender.sendMessage(Text.chat("&cYou do not have enough keys in inventory."));
             return true;
         }
 
-        sender.sendMessage(Text.color("&aConverted " + amount + " key(s) to virtual."));
+        sender.sendMessage(Text.chat("&aConverted " + amount + " key(s) to virtual."));
         return true;
+    }
+
+    private boolean handleCrateKeyGiveCommand(CommandSender sender, String label, String[] args) {
+        if (!sender.hasPermission("justcrates.admin")) {
+            sender.sendMessage(Text.chat("&cNo permission."));
+            return true;
+        }
+        if (args.length < 3) {
+            sender.sendMessage(Text.chat("&cUsage: /" + label + " key give <player|all> <key-id> <amount>"));
+            return true;
+        }
+
+        String targetArg = args[0];
+        String keyId = args[1].toLowerCase(Locale.ROOT);
+
+        int amount;
+        try {
+            amount = Math.max(1, Integer.parseInt(args[2]));
+        } catch (NumberFormatException ignored) {
+            sender.sendMessage(Text.chat("&cAmount must be a number."));
+            return true;
+        }
+
+        KeyDefinition key = plugin.getKeyService().getKey(keyId);
+        if (key == null) {
+            sender.sendMessage(Text.chat("&cKey not found."));
+            return true;
+        }
+
+        if (targetArg.equalsIgnoreCase("all")) {
+            int given = 0;
+            for (Player online : Bukkit.getOnlinePlayers()) {
+                ItemStack item = plugin.getKeyService().createKeyItem(key);
+                if (item == null) {
+                    continue;
+                }
+                item.setAmount(amount);
+                online.getInventory().addItem(item);
+                given++;
+            }
+            sender.sendMessage(Text.chat("&aGiven &f" + amount + "x &akey &7(" + keyId + ") &ato &f" + given + " &aplayer(s)."));
+            return true;
+        }
+
+        Player target = Bukkit.getPlayer(targetArg);
+        if (target == null) {
+            sender.sendMessage(Text.chat("&cPlayer not found."));
+            return true;
+        }
+
+        ItemStack item = plugin.getKeyService().createKeyItem(key);
+        if (item == null) {
+            sender.sendMessage(Text.chat("&cFailed to build key item."));
+            return true;
+        }
+        item.setAmount(amount);
+        target.getInventory().addItem(item);
+        sender.sendMessage(Text.chat("&aGiven &f" + amount + "x &akey &7(" + keyId + ") &ato &f" + target.getName() + "&a."));
+        return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if (command.getName().equalsIgnoreCase("key")) {
+            return completeLegacyKeyCommand(args);
+        }
+        return completeJustCratesCommand(args);
+    }
+
+    private List<String> completeJustCratesCommand(String[] args) {
+        if (args.length == 1) {
+            return filterByPrefix(List.of("reload", "key", "vkey"), args[0]);
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("key")) {
+            return filterByPrefix(List.of("give"), args[1]);
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("key") && args[1].equalsIgnoreCase("give")) {
+            List<String> suggestions = new ArrayList<>();
+            suggestions.add("all");
+            for (Player online : Bukkit.getOnlinePlayers()) {
+                suggestions.add(online.getName());
+            }
+            return filterByPrefix(suggestions, args[2]);
+        }
+        if (args.length == 4 && args[0].equalsIgnoreCase("key") && args[1].equalsIgnoreCase("give")) {
+            List<String> keyIds = plugin.getKeyService().getKeys().stream().map(KeyDefinition::getId).toList();
+            return filterByPrefix(keyIds, args[3]);
+        }
+        if (args.length == 5 && args[0].equalsIgnoreCase("key") && args[1].equalsIgnoreCase("give")) {
+            return filterByPrefix(List.of("1", "3", "5", "10", "16", "32", "64"), args[4]);
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("vkey")) {
+            List<String> suggestions = new ArrayList<>();
+            suggestions.add("gui");
+            for (KeyDefinition key : plugin.getKeyService().getKeys()) {
+                suggestions.add(key.getId());
+            }
+            return filterByPrefix(suggestions, args[1]);
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("vkey")) {
+            return filterByPrefix(List.of("1", "3", "5", "10", "16", "32", "64"), args[2]);
+        }
+        return Collections.emptyList();
+    }
+
+    private List<String> completeLegacyKeyCommand(String[] args) {
+        if (args.length == 1) {
+            List<String> keyIds = plugin.getKeyService().getKeys().stream().map(KeyDefinition::getId).toList();
+            return filterByPrefix(keyIds, args[0]);
+        }
+        if (args.length == 2) {
+            List<String> names = new ArrayList<>();
+            for (Player online : Bukkit.getOnlinePlayers()) {
+                names.add(online.getName());
+            }
+            return filterByPrefix(names, args[1]);
+        }
+        if (args.length == 3) {
+            return filterByPrefix(List.of("1", "3", "5", "10", "16", "32", "64"), args[2]);
+        }
+        return Collections.emptyList();
+    }
+
+    private List<String> filterByPrefix(List<String> values, String prefix) {
+        if (prefix == null) {
+            return values;
+        }
+        String lowerPrefix = prefix.toLowerCase(Locale.ROOT);
+        List<String> out = new ArrayList<>();
+        for (String value : values) {
+            if (value.toLowerCase(Locale.ROOT).startsWith(lowerPrefix)) {
+                out.add(value);
+            }
+        }
+        return out;
     }
 
     private String[] slice(String[] input, int from) {
@@ -156,10 +298,12 @@ public final class JustCratesCommand implements CommandExecutor {
     }
 
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage(Text.color("&eJustCrates commands:"));
-        sender.sendMessage(Text.color("&7/justcrates reload"));
-        sender.sendMessage(Text.color("&7/justcrates (opens editor)"));
-        sender.sendMessage(Text.color("&7/justcrates vkey [gui|<id> [amount]]"));
-        sender.sendMessage(Text.color("&7/key <id> [player] [amount]"));
+        sender.sendMessage(Text.chat("&#7EB7E5&lhelp menu"));
+        sender.sendMessage(Text.chat("&7/crate"));
+        sender.sendMessage(Text.chat("&7/crate reload"));
+        sender.sendMessage(Text.chat("&7/crate key give <player|all> <key-id> <amount>"));
+        sender.sendMessage(Text.chat("&7/crate vkey [gui|<id> [amount]]"));
+        sender.sendMessage(Text.chat("&7/key <id> [player] [amount]"));
     }
 }
+

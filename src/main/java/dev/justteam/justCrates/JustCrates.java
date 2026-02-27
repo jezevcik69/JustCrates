@@ -26,6 +26,8 @@ public final class JustCrates extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        printStartupBanner();
+
         this.paths = new PluginPaths(this);
         this.paths.ensure();
         reloadConfig();
@@ -45,8 +47,10 @@ public final class JustCrates extends JavaPlugin {
 
         JustCratesCommand command = new JustCratesCommand(this);
         getCommand("justcrates").setExecutor(command);
+        getCommand("justcrates").setTabCompleter(command);
         if (getCommand("key") != null) {
             getCommand("key").setExecutor(command);
+            getCommand("key").setTabCompleter(command);
         }
         getServer().getPluginManager().registerEvents(new CrateListener(this), this);
         getServer().getPluginManager().registerEvents(new GuiListener(this, virtualKeyService), this);
@@ -89,5 +93,17 @@ public final class JustCrates extends JavaPlugin {
 
     public EditorService getEditorService() {
         return editorService;
+    }
+
+    private void printStartupBanner() {
+        getLogger().info(" ");
+        getLogger().info("     ____.               __   _________                __                 ");
+        getLogger().info("    |    |__ __  _______/  |_ \\_   ___ \\____________ _/  |_  ____   ______");
+        getLogger().info("    |    |  |  \\/  ___/\\   __\\/    \\  \\/\\_  __ \\__  \\\\   __\\/ __ \\ /  ___/");
+        getLogger().info("/\\__|    |  |  /\\___ \\  |  |  \\     \\____|  | \\// __ \\|  | \\  ___/ \\___ \\ ");
+        getLogger().info("\\________|____//____  > |__|   \\______  /|__|  (____  /__|  \\___  >____  >");
+        getLogger().info("                    \\/                \\/            \\/          \\/     \\/ ");
+        getLogger().info("                              Loading JustCrates...                         ");
+        getLogger().info(" ");
     }
 }

@@ -19,7 +19,7 @@ import java.util.List;
 
 public final class VirtualKeyGui {
 
-    private static final String TITLE = "&8Virtual Keys";
+    private static final String TITLE = "&8Virtual Keys • Converter";
 
     private VirtualKeyGui() {
     }
@@ -34,7 +34,7 @@ public final class VirtualKeyGui {
         Inventory inv = Bukkit.createInventory(holder, size, Text.color(TITLE));
         holder.setInventory(inv);
 
-        fill(inv, Material.GRAY_STAINED_GLASS_PANE, " ");
+        fill(inv, Material.BLACK_STAINED_GLASS_PANE, " ");
         NamespacedKey idKey = new NamespacedKey(plugin, "virtual_key_id");
 
         int index = 0;
@@ -52,6 +52,7 @@ public final class VirtualKeyGui {
                 List<String> lore = meta.getLore() != null ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
                 int amount = virtualKeyService.getKeys(player.getUniqueId(), key.getId());
                 lore.add(Text.color("&7Virtual: &e" + amount));
+                lore.add(Text.color("&bInventory -> Virtual"));
                 lore.add(Text.color("&aClick to convert 1 key"));
                 meta.setLore(lore);
                 meta.getPersistentDataContainer().set(idKey, PersistentDataType.STRING, key.getId().toLowerCase());

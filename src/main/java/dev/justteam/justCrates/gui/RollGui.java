@@ -28,7 +28,7 @@ public final class RollGui {
         String title = Text.color(roll.getTitle());
 
         Inventory inv = Bukkit.createInventory(null, size, title);
-        fill(inv, Material.GRAY_STAINED_GLASS_PANE, " ");
+        fill(inv, Material.BLACK_STAINED_GLASS_PANE, " ");
 
         player.openInventory(inv);
 

@@ -34,8 +34,10 @@ public final class EditorListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }
+        ItemStack cursor = event.getCursor();
+        int rawSlot = event.getRawSlot();
         boolean rightClick = event.isRightClick();
-        editorService.handleMenuClick(player, holder, clicked, rightClick);
+        editorService.handleMenuClick(player, holder, clicked, cursor, rawSlot, rightClick);
     }
 
     @EventHandler
@@ -79,7 +81,8 @@ public final class EditorListener implements Listener {
         }
         editorService.getBlockCrateService().bind(block.getLocation(), crateId);
         editorService.getBlockCrateService().save();
-        player.sendMessage(Text.color("&aBlock bound to crate: " + crateId));
+        player.sendMessage(Text.chat("&aBlock bound to crate: " + crateId));
         editorService.openCrateEditor(player, crateId);
     }
 }
+

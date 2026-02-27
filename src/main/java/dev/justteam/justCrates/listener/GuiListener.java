@@ -46,10 +46,11 @@ public final class GuiListener implements Listener {
 
         boolean converted = virtualKeyService.convertFromInventory(player, keyId, 1);
         if (!converted) {
-            player.sendMessage(Text.color("&cYou do not have this key in inventory."));
+            player.sendMessage(Text.chat("&cYou do not have this key in inventory."));
             return;
         }
-        player.sendMessage(Text.color("&aKey converted to virtual key."));
+        player.sendMessage(Text.chat("&aKey converted to virtual key."));
         VirtualKeyGui.open(plugin, player, plugin.getKeyService(), virtualKeyService);
     }
 }
+

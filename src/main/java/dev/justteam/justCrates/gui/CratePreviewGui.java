@@ -21,9 +21,10 @@ public final class CratePreviewGui {
         int size = 27;
 
         CratePreviewHolder holder = new CratePreviewHolder(crate.getId());
-        Inventory inv = Bukkit.createInventory(holder, size, Text.color(crate.getName()));
+        Inventory inv = Bukkit.createInventory(holder, size, Text.color("&8Preview • " + crate.getName()));
         holder.setInventory(inv);
-        fill(inv, Material.GRAY_STAINED_GLASS_PANE, " ");
+        fill(inv, Material.BLACK_STAINED_GLASS_PANE, " ");
+        inv.setItem(4, infoItem(crate));
 
         int index = 0;
         for (int row = 0; row < 3; row++) {
@@ -37,6 +38,21 @@ public final class CratePreviewGui {
         }
 
         player.openInventory(inv);
+    }
+
+    private static ItemStack infoItem(CrateDefinition crate) {
+        ItemStack stack = new ItemStack(Material.ENDER_CHEST);
+        ItemMeta meta = stack.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(Text.color("&b" + crate.getName()));
+            meta.setLore(List.of(
+                Text.color("&7ID: &f" + crate.getId()),
+                Text.color("&7Rewards preview"),
+                Text.color("&eLeft-click crate to open this menu")
+            ));
+            stack.setItemMeta(meta);
+        }
+        return stack;
     }
 
     private static void fill(Inventory inv, Material material, String name) {

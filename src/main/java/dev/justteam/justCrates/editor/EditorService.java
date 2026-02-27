@@ -81,21 +81,21 @@ public final class EditorService {
     }
 
     public void openMainMenu(Player player) {
-        Inventory inv = Bukkit.createInventory(new EditorMenuHolder(EditorMenuType.MAIN, null), 27, Text.color("&8JustCrates"));
+        Inventory inv = Bukkit.createInventory(new EditorMenuHolder(EditorMenuType.MAIN, null), 27, ui("&8JustCrates • Editor"));
         fillBorder(inv);
         inv.setItem(11, actionItem(Material.CHEST, "&aCrates", "crates",
-            "&7Crate management", "&7Create, rewards, binding"));
+            "&7Create crates", "&7Setup rewards", "&7Bind crate blocks"));
         inv.setItem(15, actionItem(Material.TRIPWIRE_HOOK, "&eKeys", "keys",
-            "&7Key management", "&7Create and give"));
+            "&7Create keys", "&7Edit key icon in GUI", "&7Quick give keys"));
         inv.setItem(22, actionItem(Material.BARRIER, "&cClose", "close", "&7Close editor"));
         player.openInventory(inv);
     }
 
     public void openCratesMenu(Player player) {
-        Inventory inv = Bukkit.createInventory(new EditorMenuHolder(EditorMenuType.CRATES, null), 54, Text.color("&8Crates"));
+        Inventory inv = Bukkit.createInventory(new EditorMenuHolder(EditorMenuType.CRATES, null), 54, ui("&8Crates • Manager"));
         fillBorder(inv);
-        inv.setItem(49, actionItem(Material.EMERALD_BLOCK, "&aCreate Crate", "create_crate",
-            "&7Enter new ID"));
+        inv.setItem(49, actionItem(Material.LIME_CONCRETE, "&aCreate Crate", "create_crate",
+            "&7Create new crate by ID"));
         inv.setItem(53, actionItem(Material.ARROW, "&7Back", "back", "&7Back"));
 
         int slot = 10;
@@ -106,15 +106,16 @@ public final class EditorService {
             ItemStack icon = new ItemStack(Material.CHEST);
             ItemMeta meta = icon.getItemMeta();
             if (meta != null) {
-                meta.setDisplayName(Text.color(crate.getName()));
+                meta.setDisplayName(ui(crate.getName()));
                 List<String> lore = new ArrayList<>();
-                lore.add(Text.color("&7ID: &f" + crate.getId()));
-                lore.add(Text.color("&7Type: &f" + crate.getType().name()));
+                lore.add(ui("&7ID: &f" + crate.getId()));
+                lore.add(ui("&7Type: &f" + crate.getType().name()));
                 if (crate.getKeyId() != null && !crate.getKeyId().isBlank()) {
-                    lore.add(Text.color("&7Key: &f" + crate.getKeyId()));
+                    lore.add(ui("&7Key: &f" + crate.getKeyId()));
                 } else {
-                    lore.add(Text.color("&7Key: &cNone"));
+                    lore.add(ui("&7Key: &cNone"));
                 }
+                lore.add(ui("&eClick to edit crate"));
                 meta.setLore(lore);
                 meta.getPersistentDataContainer().set(crateIdKey, PersistentDataType.STRING, crate.getId());
                 icon.setItemMeta(meta);
@@ -127,10 +128,10 @@ public final class EditorService {
     }
 
     public void openKeysMenu(Player player) {
-        Inventory inv = Bukkit.createInventory(new EditorMenuHolder(EditorMenuType.KEYS, null), 54, Text.color("&8Keys"));
+        Inventory inv = Bukkit.createInventory(new EditorMenuHolder(EditorMenuType.KEYS, null), 54, ui("&8Keys • Manager"));
         fillBorder(inv);
-        inv.setItem(49, actionItem(Material.EMERALD_BLOCK, "&aCreate Key", "create_key",
-            "&7Hold an item in hand", "&7and enter an ID"));
+        inv.setItem(49, actionItem(Material.LIME_CONCRETE, "&aCreate Key", "create_key",
+            "&7Create key by ID", "&7No item in hand required"));
         inv.setItem(53, actionItem(Material.ARROW, "&7Back", "back", "&7Back"));
 
         int slot = 10;
@@ -146,7 +147,8 @@ public final class EditorService {
             if (meta != null) {
                 meta.getPersistentDataContainer().set(keyIdKey, PersistentDataType.STRING, key.getId());
                 List<String> lore = meta.getLore() == null ? new ArrayList<>() : new ArrayList<>(meta.getLore());
-                lore.add(Text.color("&7Click for 1x key"));
+                lore.add(ui("&eLeft click: edit key"));
+                lore.add(ui("&aRight click: get 1x key"));
                 meta.setLore(lore);
                 icon.setItemMeta(meta);
             }
@@ -157,34 +159,67 @@ public final class EditorService {
         player.openInventory(inv);
     }
 
-    public void openCrateEditor(Player player, String crateId) {
-        CrateDefinition crate = crateService.getCrate(crateId);
-        if (crate == null) {
-            player.sendMessage(Text.color("&cCrate does not exist."));
+    public void openKeyEditor(Player player, String keyId) {
+        KeyDefinition key = keyService.getKey(keyId);
+        if (key == null) {
+            player.sendMessage(Text.chat("&cKey does not exist."));
             return;
         }
 
-        Inventory inv = Bukkit.createInventory(new EditorMenuHolder(EditorMenuType.CRATE_EDIT, crateId), 45, Text.color("&8Crate: " + crateId));
+        Inventory inv = Bukkit.createInventory(new EditorMenuHolder(EditorMenuType.KEY_EDIT, keyId), 27, ui("&8Key: " + keyId));
+        fillBorder(inv);
+
+        ItemStack preview = keyService.createKeyItem(key);
+        if (preview == null) {
+            preview = new ItemStack(Material.TRIPWIRE_HOOK);
+        }
+        ItemMeta previewMeta = preview.getItemMeta();
+        if (previewMeta != null) {
+            List<String> lore = previewMeta.getLore() == null ? new ArrayList<>() : new ArrayList<>(previewMeta.getLore());
+            lore.add(ui("&7ID: &f" + keyId));
+            lore.add(ui("&7Current key icon"));
+            previewMeta.setLore(lore);
+            preview.setItemMeta(previewMeta);
+        }
+
+        inv.setItem(13, preview);
+        inv.setItem(11, actionItem(Material.ITEM_FRAME, "&bSet Icon From Cursor", "set_key_icon",
+            "&7Pick any item from inventory", "&7then click this button"));
+        inv.setItem(15, actionItem(Material.EMERALD, "&aGet 1x Key", "give_key",
+            "&7Adds this key to your inventory"));
+        inv.setItem(22, actionItem(Material.ARROW, "&7Back", "back_keys", "&7Back to keys"));
+
+        player.openInventory(inv);
+    }
+
+    public void openCrateEditor(Player player, String crateId) {
+        CrateDefinition crate = crateService.getCrate(crateId);
+        if (crate == null) {
+            player.sendMessage(Text.chat("&cCrate does not exist."));
+            return;
+        }
+
+        Inventory inv = Bukkit.createInventory(new EditorMenuHolder(EditorMenuType.CRATE_EDIT, crateId), 45, ui("&8Crate Editor • " + crateId));
         fillBorder(inv);
 
         ItemStack info = new ItemStack(Material.BOOK);
         ItemMeta infoMeta = info.getItemMeta();
         if (infoMeta != null) {
-            infoMeta.setDisplayName(Text.color("&e" + crate.getName()));
+            infoMeta.setDisplayName(ui("&e" + crate.getName()));
             List<String> lore = new ArrayList<>();
-            lore.add(Text.color("&7ID: &f" + crate.getId()));
-            lore.add(Text.color("&7Type: &f" + crate.getType().name()));
-            lore.add(Text.color("&7Key: &f" + (crate.getKeyId() == null || crate.getKeyId().isBlank() ? "&cNone" : crate.getKeyId())));
+            lore.add(ui("&7ID: &f" + crate.getId()));
+            lore.add(ui("&7Type: &f" + crate.getType().name()));
+            lore.add(ui("&7Key: &f" + (crate.getKeyId() == null || crate.getKeyId().isBlank() ? "&cNone" : crate.getKeyId())));
             infoMeta.setLore(lore);
             info.setItemMeta(infoMeta);
         }
         inv.setItem(4, info);
 
-        inv.setItem(11, actionItem(Material.ANVIL, "&aBind Block", "bind_block",
+        inv.setItem(11, actionItem(Material.CHAIN, "&aBind Block", "bind_block",
             "&7Click a block", "&7to bind"));
         inv.setItem(13, actionItem(Material.TRIPWIRE_HOOK, "&eSelect Key", "select_key",
             "&7Select an existing key"));
-        inv.setItem(15, actionItem(Material.CHEST, "&bRewards", "rewards",
+        inv.setItem(15, actionItem(Material.CHEST_MINECART, "&bRewards", "rewards",
             "&7Add and edit"));
         inv.setItem(29, actionItem(Material.DIAMOND, "&aAdd Reward From Hand", "add_reward_hand",
             "&7Takes item from hand"));
@@ -196,11 +231,11 @@ public final class EditorService {
     public void openRewardsMenu(Player player, String crateId) {
         CrateDefinition crate = crateService.getCrate(crateId);
         if (crate == null) {
-            player.sendMessage(Text.color("&cCrate does not exist."));
+            player.sendMessage(Text.chat("&cCrate does not exist."));
             return;
         }
 
-        Inventory inv = Bukkit.createInventory(new EditorMenuHolder(EditorMenuType.REWARDS, crateId), 54, Text.color("&8Rewards: " + crateId));
+        Inventory inv = Bukkit.createInventory(new EditorMenuHolder(EditorMenuType.REWARDS, crateId), 54, ui("&8Rewards • " + crateId));
         fillBorder(inv);
         inv.setItem(49, actionItem(Material.DIAMOND, "&aAdd Reward From Hand", "add_reward_hand",
             "&7Add item reward"));
@@ -216,9 +251,9 @@ public final class EditorService {
             ItemMeta meta = icon.getItemMeta();
             if (meta != null) {
                 List<String> lore = meta.getLore() == null ? new ArrayList<>() : new ArrayList<>(meta.getLore());
-                lore.add(Text.color("&7Weight: &f" + reward.getWeight()));
-                lore.add(Text.color("&7Left: change weight"));
-                lore.add(Text.color("&7Right: remove"));
+                lore.add(ui("&7Weight: &f" + reward.getWeight()));
+                lore.add(ui("&7Left: change weight"));
+                lore.add(ui("&7Right: remove"));
                 meta.setLore(lore);
                 meta.getPersistentDataContainer().set(rewardIndexKey, PersistentDataType.INTEGER, index);
                 icon.setItemMeta(meta);
@@ -232,7 +267,7 @@ public final class EditorService {
     }
 
     public void openKeySelectMenu(Player player, String crateId) {
-        Inventory inv = Bukkit.createInventory(new EditorMenuHolder(EditorMenuType.KEY_SELECT, crateId), 54, Text.color("&8Select Key"));
+        Inventory inv = Bukkit.createInventory(new EditorMenuHolder(EditorMenuType.KEY_SELECT, crateId), 54, ui("&8Select Key • " + crateId));
         fillBorder(inv);
         inv.setItem(53, actionItem(Material.ARROW, "&7Back", "back", "&7Back"));
 
@@ -249,7 +284,7 @@ public final class EditorService {
             if (meta != null) {
                 meta.getPersistentDataContainer().set(keyIdKey, PersistentDataType.STRING, key.getId());
                 List<String> lore = meta.getLore() == null ? new ArrayList<>() : new ArrayList<>(meta.getLore());
-                lore.add(Text.color("&7Click to select"));
+                lore.add(ui("&7Click to select"));
                 meta.setLore(lore);
                 icon.setItemMeta(meta);
             }
@@ -260,7 +295,7 @@ public final class EditorService {
         player.openInventory(inv);
     }
 
-    public void handleMenuClick(Player player, EditorMenuHolder holder, ItemStack clicked, boolean rightClick) {
+    public void handleMenuClick(Player player, EditorMenuHolder holder, ItemStack clicked, ItemStack cursor, int rawSlot, boolean rightClick) {
         if (holder == null) {
             return;
         }
@@ -271,7 +306,8 @@ public final class EditorService {
         switch (type) {
             case MAIN -> handleMainClick(player, action);
             case CRATES -> handleCratesClick(player, action, data);
-            case KEYS -> handleKeysClick(player, action, data);
+            case KEYS -> handleKeysClick(player, action, data, rightClick);
+            case KEY_EDIT -> handleKeyEditClick(player, holder.getCrateId(), action, cursor, rawSlot);
             case CRATE_EDIT -> handleCrateEditClick(player, holder.getCrateId(), action);
             case REWARDS -> handleRewardsClick(player, holder.getCrateId(), action, data, rightClick);
             case KEY_SELECT -> handleKeySelectClick(player, holder.getCrateId(), action, data);
@@ -281,19 +317,20 @@ public final class EditorService {
     public void startCreateCrate(Player player) {
         pendingInput.put(player.getUniqueId(), new EditorInput(EditorInputType.CREATE_CRATE, null, null));
         player.closeInventory();
-        player.sendMessage(Text.color("&eEnter crate ID (e.g. &fstarter& e)."));
+        player.sendMessage(Text.chat("&eEnter crate ID (e.g. &fstarter& e)."));
     }
 
     public void startCreateKey(Player player) {
         pendingInput.put(player.getUniqueId(), new EditorInput(EditorInputType.CREATE_KEY, null, null));
         player.closeInventory();
-        player.sendMessage(Text.color("&eHold an item in hand and enter a key ID."));
+        player.sendMessage(Text.chat("&eEnter key ID (e.g. &fstarter_key& e)."));
+        player.sendMessage(Text.chat("&7Icon can be set in GUI editor after creation."));
     }
 
     public void startSetRewardWeight(Player player, String crateId, int rewardIndex) {
         pendingInput.put(player.getUniqueId(), new EditorInput(EditorInputType.SET_REWARD_WEIGHT, crateId, rewardIndex));
         player.closeInventory();
-        player.sendMessage(Text.color("&eEnter new weight (number)."));
+        player.sendMessage(Text.chat("&eEnter new weight (number)."));
     }
 
     public boolean isInBindMode(Player player) {
@@ -307,7 +344,7 @@ public final class EditorService {
     public void setBindMode(Player player, String crateId) {
         bindMode.put(player.getUniqueId(), crateId);
         player.closeInventory();
-        player.sendMessage(Text.color("&aClick a block to bind the crate."));
+        player.sendMessage(Text.chat("&aClick a block to bind the crate."));
     }
 
     public void clearBindMode(Player player) {
@@ -358,7 +395,7 @@ public final class EditorService {
         }
     }
 
-    private void handleKeysClick(Player player, String action, PersistentDataContainer data) {
+    private void handleKeysClick(Player player, String action, PersistentDataContainer data, boolean rightClick) {
         if ("create_key".equals(action)) {
             startCreateKey(player);
             return;
@@ -372,7 +409,45 @@ public final class EditorService {
         }
         String keyId = data.get(keyIdKey, PersistentDataType.STRING);
         if (keyId != null) {
+            if (rightClick) {
+                giveKey(player, keyId, player, 1);
+            } else {
+                openKeyEditor(player, keyId);
+            }
+        }
+    }
+
+    private void handleKeyEditClick(Player player, String keyId, String action, ItemStack cursor, int rawSlot) {
+        if (keyId == null) {
+            return;
+        }
+        if ("back_keys".equals(action)) {
+            openKeysMenu(player);
+            return;
+        }
+        if ("give_key".equals(action)) {
             giveKey(player, keyId, player, 1);
+            openKeyEditor(player, keyId);
+            return;
+        }
+        if ("set_key_icon".equals(action)) {
+            if (cursor == null || cursor.getType().isAir()) {
+                player.sendMessage(Text.chat("&cPick an item on cursor first."));
+                return;
+            }
+            if (!saveKeyItemFromCursor(player, keyId, cursor)) {
+                player.sendMessage(Text.chat("&cFailed to update key icon."));
+                return;
+            }
+            return;
+        }
+
+        // Allow direct icon update by clicking center slot with cursor item.
+        if (rawSlot == 13 && cursor != null && !cursor.getType().isAir()) {
+            if (!saveKeyItemFromCursor(player, keyId, cursor)) {
+                player.sendMessage(Text.chat("&cFailed to update key icon."));
+                return;
+            }
         }
     }
 
@@ -435,12 +510,12 @@ public final class EditorService {
     private void handleCreateCrateInput(Player player, String message) {
         String id = normalizeId(message);
         if (id == null) {
-            player.sendMessage(Text.color("&cInvalid ID. Use a-z, 0-9, - or _."));
+            player.sendMessage(Text.chat("&cInvalid ID. Use a-z, 0-9, - or _."));
             return;
         }
         File file = new File(paths.getCratesFolder(), id + ".yml");
         if (file.exists()) {
-            player.sendMessage(Text.color("&cA crate with this ID already exists."));
+            player.sendMessage(Text.chat("&cA crate with this ID already exists."));
             return;
         }
 
@@ -459,36 +534,26 @@ public final class EditorService {
         try {
             cfg.save(file);
             crateService.loadAll();
-            player.sendMessage(Text.color("&aCrate created: " + id));
+            player.sendMessage(Text.chat("&aCrate created: " + id));
             openCrateEditor(player, id);
         } catch (IOException e) {
-            player.sendMessage(Text.color("&cFailed to save crate."));
+            player.sendMessage(Text.chat("&cFailed to save crate."));
         }
     }
 
     private void handleCreateKeyInput(Player player, String message) {
-        ItemStack hand = player.getInventory().getItemInMainHand();
-        if (hand == null || hand.getType().isAir()) {
-            player.sendMessage(Text.color("&cHold an item in hand."));
-            return;
-        }
         String id = normalizeId(message);
         if (id == null) {
-            player.sendMessage(Text.color("&cInvalid ID. Use a-z, 0-9, - or _."));
+            player.sendMessage(Text.chat("&cInvalid ID. Use a-z, 0-9, - or _."));
             return;
         }
-        File file = new File(paths.getKeysFolder(), id + ".yml");
-        if (file.exists()) {
-            player.sendMessage(Text.color("&cA key with this ID already exists."));
-            return;
-        }
-        boolean saved = keyService.saveKeyFromItem(id, hand);
+        boolean saved = keyService.createDefaultKey(id);
         if (saved) {
             keyService.loadAll();
-            player.sendMessage(Text.color("&aKey created: " + id));
-            openKeysMenu(player);
+            player.sendMessage(Text.chat("&aKey created: " + id));
+            openKeyEditor(player, id);
         } else {
-            player.sendMessage(Text.color("&cFailed to save key."));
+            player.sendMessage(Text.chat("&cFailed to create key. ID may already exist."));
         }
     }
 
@@ -500,11 +565,11 @@ public final class EditorService {
         try {
             weight = Math.max(1, Integer.parseInt(message.trim()));
         } catch (NumberFormatException e) {
-            player.sendMessage(Text.color("&cInvalid number."));
+            player.sendMessage(Text.chat("&cInvalid number."));
             return;
         }
         if (!setRewardWeight(crateId, index, weight)) {
-            player.sendMessage(Text.color("&cFailed to update reward."));
+            player.sendMessage(Text.chat("&cFailed to update reward."));
             return;
         }
         crateService.loadAll();
@@ -517,11 +582,11 @@ public final class EditorService {
         }
         ItemStack hand = player.getInventory().getItemInMainHand();
         if (hand == null || hand.getType().isAir()) {
-            player.sendMessage(Text.color("&cHold an item in hand."));
+            player.sendMessage(Text.chat("&cHold an item in hand."));
             return;
         }
         if (!addItemReward(crateId, hand)) {
-            player.sendMessage(Text.color("&cFailed to add reward."));
+            player.sendMessage(Text.chat("&cFailed to add reward."));
             return;
         }
         crateService.loadAll();
@@ -644,29 +709,42 @@ public final class EditorService {
     private void giveKey(Player sender, String keyId, Player target, int amount) {
         KeyDefinition key = keyService.getKey(keyId);
         if (key == null) {
-            sender.sendMessage(Text.color("&cKey does not exist."));
+            sender.sendMessage(Text.chat("&cKey does not exist."));
             return;
         }
         ItemStack item = keyService.createKeyItem(key);
         if (item == null) {
-            sender.sendMessage(Text.color("&cFailed to build key item."));
+            sender.sendMessage(Text.chat("&cFailed to build key item."));
             return;
         }
         item.setAmount(amount);
         target.getInventory().addItem(item);
         if (!sender.getUniqueId().equals(target.getUniqueId())) {
-            sender.sendMessage(Text.color("&aKey given."));
+            sender.sendMessage(Text.chat("&aKey given."));
         }
+    }
+
+    private boolean saveKeyItemFromCursor(Player player, String keyId, ItemStack cursor) {
+        ItemStack icon = cursor.clone();
+        icon.setAmount(1);
+        boolean saved = keyService.updateKeyItemStack(keyId, icon);
+        if (!saved) {
+            return false;
+        }
+        keyService.loadAll();
+        player.sendMessage(Text.chat("&aKey icon updated: " + keyId));
+        openKeyEditor(player, keyId);
+        return true;
     }
 
     private ItemStack actionItem(Material material, String name, String action, String... loreLines) {
         ItemStack stack = new ItemStack(material);
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(Text.color(name));
+            meta.setDisplayName(ui(name));
             List<String> lore = new ArrayList<>();
             for (String line : loreLines) {
-                lore.add(Text.color(line));
+                lore.add(ui(line));
             }
             if (!lore.isEmpty()) {
                 meta.setLore(lore);
@@ -679,18 +757,25 @@ public final class EditorService {
     }
 
     private void fillBorder(Inventory inv) {
-        ItemStack pane = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+        ItemStack darkPane = decorativePane(Material.BLACK_STAINED_GLASS_PANE);
+        ItemStack accentPane = decorativePane(Material.LIGHT_BLUE_STAINED_GLASS_PANE);
+        int size = inv.getSize();
+        for (int i = 0; i < size; i++) {
+            if (i < 9 || i >= size - 9 || i % 9 == 0 || i % 9 == 8) {
+                boolean accent = (i % 9 == 0 || i % 9 == 8) && i >= 9 && i < size - 9;
+                inv.setItem(i, accent ? accentPane : darkPane);
+            }
+        }
+    }
+
+    private ItemStack decorativePane(Material material) {
+        ItemStack pane = new ItemStack(material);
         ItemMeta meta = pane.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(" ");
             pane.setItemMeta(meta);
         }
-        int size = inv.getSize();
-        for (int i = 0; i < size; i++) {
-            if (i < 9 || i >= size - 9 || i % 9 == 0 || i % 9 == 8) {
-                inv.setItem(i, pane);
-            }
-        }
+        return pane;
     }
 
     private ItemStack rewardIcon(RewardDefinition reward) {
@@ -698,7 +783,7 @@ public final class EditorService {
             ItemStack stack = new ItemStack(Material.COMMAND_BLOCK);
             ItemMeta meta = stack.getItemMeta();
             if (meta != null) {
-                meta.setDisplayName(Text.color("&cCommand Reward"));
+                meta.setDisplayName(ui("&cCommand Reward"));
                 stack.setItemMeta(meta);
             }
             return stack;
@@ -711,7 +796,7 @@ public final class EditorService {
             ItemStack stack = new ItemStack(mat);
             ItemMeta meta = stack.getItemMeta();
             if (meta != null) {
-                meta.setDisplayName(Text.color(reward.getItemDefinition().getDisplayNameOrDefault()));
+                meta.setDisplayName(ui(reward.getItemDefinition().getDisplayNameOrDefault()));
                 stack.setItemMeta(meta);
             }
             return stack;
@@ -739,4 +824,9 @@ public final class EditorService {
         }
         return id;
     }
+
+    private String ui(String input) {
+        return Text.color(Text.toSmallCaps(input));
+    }
 }
+

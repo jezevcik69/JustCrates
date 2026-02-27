@@ -11,7 +11,7 @@ commands:
   justcrates:
     description: JustCrates main command
     usage: /<command>
-    aliases: [crates]
+    aliases: [crates, crate]
   key:
     description: Give JustCrates key
     usage: /<command> <id> [player] [amount]

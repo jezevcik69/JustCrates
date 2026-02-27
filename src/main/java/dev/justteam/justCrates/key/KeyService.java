@@ -12,7 +12,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public final class KeyService {
 
@@ -95,6 +97,18 @@ public final class KeyService {
         return itemFactory.isKey(stack, keyId);
     }
 
+    public String resolveKeyId(ItemStack stack) {
+        if (stack == null) {
+            return null;
+        }
+        for (KeyDefinition key : registry.all()) {
+            if (itemFactory.isKey(stack, key.getId())) {
+                return key.getId();
+            }
+        }
+        return null;
+    }
+
     public boolean saveKeyFromItem(String id, ItemStack stack) {
         if (id == null || id.isBlank() || stack == null) {
             return false;
@@ -110,6 +124,67 @@ public final class KeyService {
             return true;
         } catch (IOException e) {
             plugin.getLogger().severe("Failed to save key: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean createDefaultKey(String id) {
+        if (id == null || id.isBlank()) {
+            return false;
+        }
+
+        String normalized = id.toLowerCase(Locale.ROOT);
+        File file = new File(paths.getKeysFolder(), normalized + ".yml");
+        if (file.exists()) {
+            return false;
+        }
+
+        YamlConfiguration cfg = new YamlConfiguration();
+        cfg.set("id", normalized);
+        cfg.set("display.name", "&e" + normalized + " key");
+        cfg.set("display.lore", List.of("&7Configure this key in editor"));
+        cfg.set("item.material", "TRIPWIRE_HOOK");
+        cfg.set("item.amount", 1);
+        cfg.set("item.custom-model-data", 0);
+        cfg.set("item.provider", "");
+        cfg.set("item.provider-item", "");
+
+        try {
+            cfg.save(file);
+            return true;
+        } catch (IOException e) {
+            plugin.getLogger().severe("Failed to create key: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean updateKeyItemStack(String id, ItemStack stack) {
+        if (id == null || id.isBlank() || stack == null) {
+            return false;
+        }
+
+        File file = new File(paths.getKeysFolder(), id.toLowerCase(Locale.ROOT) + ".yml");
+        if (!file.exists()) {
+            return false;
+        }
+
+        YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+        cfg.set("itemstack", stack);
+        cfg.set("item", null);
+
+        ItemMeta meta = stack.getItemMeta();
+        if (meta != null) {
+            String displayName = meta.hasDisplayName() ? meta.getDisplayName() : "&e" + id + " key";
+            List<String> lore = meta.hasLore() ? meta.getLore() : List.of("&7Configured from GUI editor");
+            cfg.set("display.name", displayName);
+            cfg.set("display.lore", lore != null ? new ArrayList<>(lore) : List.of("&7Configured from GUI editor"));
+        }
+
+        try {
+            cfg.save(file);
+            return true;
+        } catch (IOException e) {
+            plugin.getLogger().severe("Failed to update key item: " + e.getMessage());
             return false;
         }
     }
