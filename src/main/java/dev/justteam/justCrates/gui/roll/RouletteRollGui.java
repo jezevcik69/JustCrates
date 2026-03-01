@@ -18,21 +18,14 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
 
-/**
- * Roulette-style roll: items rotate around the perimeter of the inventory,
- * slowing down until the reward stops at the marker position.
- */
-public final class RouletteRollGui {
 
-    // Perimeter slots in clockwise order (54-slot inventory)
+public final class RouletteRollGui {
     private static final int[] PERIMETER = {
         0, 1, 2, 3, 4, 5, 6, 7, 8,
         17, 26, 35, 44,
         53, 52, 51, 50, 49, 48, 47, 46, 45,
         36, 27, 18, 9
     };
-
-    // Marker position (top center = slot 4, index 4 in PERIMETER)
     private static final int MARKER_INDEX = 4;
 
     private RouletteRollGui() {
@@ -43,17 +36,11 @@ public final class RouletteRollGui {
         String title = Text.color(roll.getTitle());
 
         Inventory inv = Bukkit.createInventory(new RollInventoryHolder(), 54, title);
-
-        // Fill everything with dark glass
         ItemStack dark = pane(Material.BLACK_STAINED_GLASS_PANE);
         for (int i = 0; i < 54; i++) {
             inv.setItem(i, dark);
         }
-
-        // Center decoration
         inv.setItem(22, pane(Material.CYAN_STAINED_GLASS_PANE));
-
-        // Marker arrows
         ItemStack marker = pane(Material.YELLOW_STAINED_GLASS_PANE);
         inv.setItem(13, marker); // below marker slot
 
@@ -87,8 +74,6 @@ public final class RouletteRollGui {
 
                 if (ticksSinceLastShift >= currentInterval) {
                     ticksSinceLastShift = 0;
-
-                    // Place items around perimeter, shifted by offset
                     for (int i = 0; i < PERIMETER.length; i++) {
                         int itemIndex = (i + offset) % preview.size();
                         inv.setItem(PERIMETER[i], preview.get(itemIndex));
@@ -97,8 +82,6 @@ public final class RouletteRollGui {
 
                     player.updateInventory();
                     playTickSound(plugin, player);
-
-                    // Slow down
                     double progress = (double) elapsed / totalTicks;
                     if (progress > 0.4) {
                         currentInterval = baseInterval + (int) ((progress - 0.4) * 14);
@@ -106,7 +89,6 @@ public final class RouletteRollGui {
                 }
 
                 if (elapsed >= totalTicks) {
-                    // Highlight winning item at marker
                     if (finalReward != null) {
                         ItemStack display = RewardPreview.create(finalReward);
                         if (display != null) {
@@ -161,3 +143,4 @@ public final class RouletteRollGui {
         }
     }
 }
+

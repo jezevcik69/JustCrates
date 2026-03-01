@@ -26,3 +26,4 @@ public final class EditorMenuHolder implements InventoryHolder {
         return null;
     }
 }
+

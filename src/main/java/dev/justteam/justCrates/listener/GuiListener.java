@@ -57,8 +57,6 @@ public final class GuiListener implements Listener {
         if (keyDef == null) {
             return;
         }
-
-        // Find and remove 1 physical key from inventory
         boolean found = false;
         ItemStack[] contents = player.getInventory().getContents();
         for (int i = 0; i < contents.length; i++) {
@@ -80,8 +78,6 @@ public final class GuiListener implements Listener {
             return;
         }
         player.getInventory().setContents(contents);
-
-        // Give virtual key item
         ItemStack virtualKey = keyService.createVirtualKeyItem(keyDef);
         if (virtualKey != null) {
             player.getInventory().addItem(virtualKey);
@@ -100,3 +96,4 @@ public final class GuiListener implements Listener {
         }
     }
 }
+

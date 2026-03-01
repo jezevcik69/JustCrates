@@ -78,3 +78,4 @@ public final class ItemDefinition {
         return Text.color(name != null ? name : material.name());
     }
 }
+

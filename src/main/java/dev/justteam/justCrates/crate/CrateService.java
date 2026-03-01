@@ -161,7 +161,6 @@ public final class CrateService {
                 hand.setAmount(hand.getAmount() - 1);
                 consumed = true;
             } else {
-                // Search inventory for virtual key items
                 ItemStack[] contents = player.getInventory().getContents();
                 for (int i = 0; i < contents.length; i++) {
                     ItemStack item = contents[i];
@@ -329,3 +328,4 @@ public final class CrateService {
         }
     }
 }
+

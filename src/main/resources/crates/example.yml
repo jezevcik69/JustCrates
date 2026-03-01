@@ -1,4 +1,4 @@
-﻿id: "starter"
+id: "starter"
 type: "GUI"
 key: "starter_key"
 display:
@@ -27,3 +27,4 @@ rewards:
       lore:
         - "&7Shiny"
       custom-model-data: 0
+

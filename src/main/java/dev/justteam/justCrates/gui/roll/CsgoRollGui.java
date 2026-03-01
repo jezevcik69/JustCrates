@@ -18,10 +18,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
 
-/**
- * CSGO-style roll: items scroll horizontally across the middle row,
- * slowing down until the reward lands in the center (slot 13).
- */
+
 public final class CsgoRollGui {
 
     private CsgoRollGui() {
@@ -32,29 +29,21 @@ public final class CsgoRollGui {
         String title = Text.color(roll.getTitle());
 
         Inventory inv = Bukkit.createInventory(new RollInventoryHolder(), 27, title);
-
-        // Fill border rows with gradient glass
         ItemStack dark = pane(Material.BLUE_STAINED_GLASS_PANE);
         ItemStack accent = pane(Material.LIGHT_BLUE_STAINED_GLASS_PANE);
         ItemStack corner = pane(Material.CYAN_STAINED_GLASS_PANE);
-
-        // Top row
         for (int i = 0; i < 9; i++) {
             inv.setItem(i, dark);
         }
         inv.setItem(0, corner);
         inv.setItem(4, accent); // marker above center
         inv.setItem(8, corner);
-
-        // Bottom row
         for (int i = 18; i < 27; i++) {
             inv.setItem(i, dark);
         }
         inv.setItem(18, corner);
         inv.setItem(22, accent); // marker below center
         inv.setItem(26, corner);
-
-        // Middle row - fill with dark
         for (int i = 9; i < 18; i++) {
             inv.setItem(i, pane(Material.BLACK_STAINED_GLASS_PANE));
         }
@@ -65,8 +54,6 @@ public final class CsgoRollGui {
         if (preview.isEmpty()) {
             return;
         }
-
-        // Pre-roll the final reward
         RewardDefinition finalReward = crateService.rollReward(crate);
 
         int totalTicks = roll.getDurationTicks();
@@ -90,19 +77,14 @@ public final class CsgoRollGui {
 
                 if (ticksSinceLastShift >= currentInterval) {
                     ticksSinceLastShift = 0;
-
-                    // Shift items: slots 9-17 scroll left
                     for (int i = 9; i < 17; i++) {
                         inv.setItem(i, inv.getItem(i + 1));
                     }
-                    // New item enters from the right
                     inv.setItem(17, preview.get(offset % preview.size()));
                     offset++;
 
                     player.updateInventory();
                     playTickSound(plugin, player);
-
-                    // Slow down over time
                     double progress = (double) elapsed / totalTicks;
                     if (progress > 0.5) {
                         currentInterval = baseInterval + (int) ((progress - 0.5) * 12);
@@ -110,7 +92,6 @@ public final class CsgoRollGui {
                 }
 
                 if (elapsed >= totalTicks) {
-                    // Place final reward in center
                     if (finalReward != null) {
                         ItemStack display = RewardPreview.create(finalReward);
                         if (display != null) {
@@ -164,3 +145,4 @@ public final class CsgoRollGui {
         }
     }
 }
+

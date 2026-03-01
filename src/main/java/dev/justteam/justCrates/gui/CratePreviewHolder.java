@@ -25,3 +25,4 @@ public final class CratePreviewHolder implements InventoryHolder {
         return inventory;
     }
 }
+

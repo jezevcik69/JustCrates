@@ -67,8 +67,6 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage(Text.chat("&cNo permission."));
                     return true;
                 }
-
-                // Forcefully clear any stuck or overlapping tasks from previous reloads
                 Bukkit.getScheduler().cancelTasks(plugin);
 
                 plugin.reloadConfig();
@@ -296,3 +294,4 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(Text.chat("&7/key <id> [player] [amount]"));
     }
 }
+

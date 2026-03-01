@@ -77,3 +77,4 @@ public final class PluginPaths {
         return blocksFile;
     }
 }
+

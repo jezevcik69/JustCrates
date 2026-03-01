@@ -51,20 +51,14 @@ public final class CratePreviewGui {
         for (int i = 0; i < 54; i++) {
             inv.setItem(i, dark);
         }
-
-        // Corners
         int[] corners = {0, 8, 45, 53};
         for (int c : corners) {
             inv.setItem(c, corner);
         }
-
-        // Side accents (left/right columns, middle rows)
         for (int row = 1; row < 5; row++) {
             inv.setItem(row * 9, accent);
             inv.setItem(row * 9 + 8, accent);
         }
-
-        // Clear content area
         int[] contentSlots = {
             10, 11, 12, 13, 14, 15, 16,
             19, 20, 21, 22, 23, 24, 25,
@@ -74,8 +68,6 @@ public final class CratePreviewGui {
         for (int slot : contentSlots) {
             inv.setItem(slot, null);
         }
-
-        // Top row accent slots (around info item)
         inv.setItem(3, accent);
         inv.setItem(5, accent);
     }
@@ -90,3 +82,4 @@ public final class CratePreviewGui {
         return stack;
     }
 }
+

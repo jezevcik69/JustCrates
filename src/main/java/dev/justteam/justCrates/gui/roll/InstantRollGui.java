@@ -14,9 +14,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
-/**
- * Instant roll: immediately shows the reward without animation.
- */
+
 public final class InstantRollGui {
 
     private InstantRollGui() {
@@ -29,8 +27,6 @@ public final class InstantRollGui {
         }
 
         Inventory inv = Bukkit.createInventory(new RollInventoryHolder(), 27, Text.color(crate.getRollDefinition().getTitle()));
-
-        // Fill with gradient border
         ItemStack dark = pane(Material.BLUE_STAINED_GLASS_PANE);
         ItemStack accent = pane(Material.LIGHT_BLUE_STAINED_GLASS_PANE);
         ItemStack corner = pane(Material.CYAN_STAINED_GLASS_PANE);
@@ -44,8 +40,6 @@ public final class InstantRollGui {
         inv.setItem(26, corner);
         inv.setItem(9, accent);
         inv.setItem(17, accent);
-
-        // Show reward in center
         ItemStack display = RewardPreview.create(reward);
         if (display != null) {
             inv.setItem(13, display);
@@ -84,3 +78,4 @@ public final class InstantRollGui {
         }
     }
 }
+

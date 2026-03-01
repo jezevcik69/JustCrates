@@ -171,13 +171,9 @@ public final class BlockCrateService {
             if (loc == null || loc.getWorld() == null) {
                 continue;
             }
-
-            // check if chunk is loaded to prevent lag
             if (!loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
                 continue;
             }
-
-            // check if block is empty (air), which means the crate was physically removed
             if (loc.getBlock().getType().isAir()) {
                 continue;
             }
@@ -190,15 +186,9 @@ public final class BlockCrateService {
 
             try {
                 Particle particle = Particle.valueOf(crate.getParticle());
-
-                // Spawn a dense trail of particles spanning the last 120ms
                 for (int i = 0; i < 6; i++) {
                     double t = (millis - (i * 20)) / 1000.0;
-
-                    // Spin 3 times per second
                     double angle = t * Math.PI * 2 * 3.0;
-
-                    // Moves up at 0.75 blocks per second (takes 2s to reach 1.5 blocks)
                     double height = (t * 0.75) % 1.5;
                     if (height < 0)
                         height += 1.5;
@@ -209,12 +199,9 @@ public final class BlockCrateService {
 
                     Location center = loc.clone().add(0.5, height, 0.5);
                     Location particleLoc = center.add(xOffset, 0, zOffset);
-
-                    // Spawn a single particle without spread
                     loc.getWorld().spawnParticle(particle, particleLoc, 1, 0, 0, 0, 0);
                 }
             } catch (Exception ignored) {
-                // Invalid particle name, ignore
             }
         }
     }
@@ -360,3 +347,4 @@ public final class BlockCrateService {
         hologramEntities.clear();
     }
 }
+

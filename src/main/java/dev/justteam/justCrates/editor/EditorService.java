@@ -629,8 +629,6 @@ public final class EditorService {
             }
             return;
         }
-
-        // Allow direct icon update by clicking center slot with cursor item.
         if (rawSlot == 13 && cursor != null && !cursor.getType().isAir()) {
             if (!saveKeyItemFromCursor(player, keyId, cursor)) {
                 player.sendMessage(Text.chat("&cFailed to update key icon."));
@@ -1636,14 +1634,10 @@ public final class EditorService {
                 inv.setItem(i, dark);
             }
         }
-
-        // Corners
         inv.setItem(0, corner);
         inv.setItem(8, corner);
         inv.setItem(size - 9, corner);
         inv.setItem(size - 1, corner);
-
-        // Side accents
         for (int row = 1; row < rows - 1; row++) {
             inv.setItem(row * 9, accent);
             inv.setItem(row * 9 + 8, accent);
@@ -1729,7 +1723,6 @@ public final class EditorService {
                     return file;
                 }
             } catch (Exception ignored) {
-                // Skip malformed files and continue lookup.
             }
         }
         return null;
@@ -1758,3 +1751,4 @@ public final class EditorService {
         return Text.color(Text.toSmallCaps(input));
     }
 }
+

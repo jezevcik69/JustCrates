@@ -22,3 +22,4 @@ public final class VanillaProvider implements ItemProvider {
         return new ItemStack(definition.getMaterial(), definition.getAmount());
     }
 }
+

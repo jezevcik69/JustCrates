@@ -1,4 +1,4 @@
-﻿name: JustCrates
+name: JustCrates
 version: '${version}'
 main: dev.justteam.justCrates.JustCrates
 api-version: '1.21'
@@ -18,3 +18,4 @@ commands:
 permissions:
   justcrates.admin:
     default: op
+

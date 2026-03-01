@@ -108,3 +108,4 @@ public final class JustCrates extends JavaPlugin {
         getLogger().info(" ");
     }
 }
+

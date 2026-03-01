@@ -118,3 +118,4 @@ public final class EditorListener implements Listener {
         editorService.openCrateEditor(player, crateId);
     }
 }
+

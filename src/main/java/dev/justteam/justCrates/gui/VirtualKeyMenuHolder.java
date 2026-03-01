@@ -16,3 +16,4 @@ public final class VirtualKeyMenuHolder implements InventoryHolder {
         return inventory;
     }
 }
+

@@ -69,3 +69,4 @@ public final class CrateListener implements Listener {
         CratePreviewGui.open(event.getPlayer(), crate);
     }
 }
+

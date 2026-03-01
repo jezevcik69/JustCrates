@@ -53,3 +53,4 @@ public final class KeyDefinition {
         return Text.color(name);
     }
 }
+

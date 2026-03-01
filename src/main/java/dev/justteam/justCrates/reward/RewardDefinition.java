@@ -60,3 +60,4 @@ public final class RewardDefinition {
         return previewLore;
     }
 }
+
