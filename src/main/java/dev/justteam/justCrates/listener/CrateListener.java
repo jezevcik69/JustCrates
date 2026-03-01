@@ -11,7 +11,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
 public final class CrateListener implements Listener {
-
     private final JustCrates plugin;
 
     public CrateListener(JustCrates plugin) {
@@ -69,4 +68,3 @@ public final class CrateListener implements Listener {
         CratePreviewGui.open(event.getPlayer(), crate);
     }
 }
-

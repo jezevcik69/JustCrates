@@ -18,7 +18,6 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
 public final class GuiListener implements Listener {
-
     private final JustCrates plugin;
     private final VirtualKeyService virtualKeyService;
 
@@ -90,10 +89,8 @@ public final class GuiListener implements Listener {
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
         InventoryHolder holder = event.getInventory().getHolder();
-        if (holder instanceof CratePreviewHolder || holder instanceof RollInventoryHolder
-                || holder instanceof VirtualKeyMenuHolder) {
+        if (holder instanceof CratePreviewHolder || holder instanceof RollInventoryHolder || holder instanceof VirtualKeyMenuHolder) {
             event.setCancelled(true);
         }
     }
 }
-

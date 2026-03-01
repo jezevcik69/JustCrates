@@ -4,4 +4,3 @@ public enum RewardType {
     COMMAND,
     ITEM
 }
-

@@ -12,9 +12,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.List;
 
 public final class CratePreviewGui {
-
-    private CratePreviewGui() {
-    }
+    private CratePreviewGui() {}
 
     public static void open(Player player, CrateDefinition crate) {
         List<ItemStack> rewards = RewardPreview.buildPreview(crate);
@@ -82,4 +80,3 @@ public final class CratePreviewGui {
         return stack;
     }
 }
-

@@ -6,7 +6,6 @@ import java.util.Locale;
 import java.util.Map;
 
 public final class KeyRegistry {
-
     private final Map<String, KeyDefinition> keys = new HashMap<>();
 
     public void register(KeyDefinition key) {
@@ -28,4 +27,3 @@ public final class KeyRegistry {
         keys.clear();
     }
 }
-

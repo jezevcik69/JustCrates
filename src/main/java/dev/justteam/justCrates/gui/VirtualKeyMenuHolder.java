@@ -4,7 +4,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
 public final class VirtualKeyMenuHolder implements InventoryHolder {
-
     private Inventory inventory;
 
     public void setInventory(Inventory inventory) {
@@ -16,4 +15,3 @@ public final class VirtualKeyMenuHolder implements InventoryHolder {
         return inventory;
     }
 }
-

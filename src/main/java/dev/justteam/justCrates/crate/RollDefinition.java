@@ -1,7 +1,6 @@
 package dev.justteam.justCrates.crate;
 
 public final class RollDefinition {
-
     private final RollType rollType;
     private final int size;
     private final String title;
@@ -36,4 +35,3 @@ public final class RollDefinition {
         return tickInterval;
     }
 }
-

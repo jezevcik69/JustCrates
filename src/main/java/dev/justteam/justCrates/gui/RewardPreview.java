@@ -12,9 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class RewardPreview {
-
-    private RewardPreview() {
-    }
+    private RewardPreview() {}
 
     public static List<ItemStack> buildPreview(CrateDefinition crate) {
         List<ItemStack> list = new ArrayList<>();
@@ -75,4 +73,3 @@ public final class RewardPreview {
         return paper;
     }
 }
-

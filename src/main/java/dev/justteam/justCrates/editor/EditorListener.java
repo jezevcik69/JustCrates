@@ -17,7 +17,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 public final class EditorListener implements Listener {
-
     private final EditorService editorService;
 
     public EditorListener(EditorService editorService) {
@@ -118,4 +117,3 @@ public final class EditorListener implements Listener {
         editorService.openCrateEditor(player, crateId);
     }
 }
-

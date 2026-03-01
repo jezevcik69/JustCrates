@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.util.*;
 
 public final class BlockCrateService {
-
     private final JavaPlugin plugin;
     private final PluginPaths paths;
     private final Map<String, String> bindings = new HashMap<>();
@@ -342,4 +341,3 @@ public final class BlockCrateService {
         hologramEntities.clear();
     }
 }
-

@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Locale;
 
 public final class JustCratesCommand implements CommandExecutor, TabCompleter {
-
     private final JustCrates plugin;
 
     public JustCratesCommand(JustCrates plugin) {
@@ -294,4 +293,3 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(Text.chat("&7/key <id> [player] [amount]"));
     }
 }
-

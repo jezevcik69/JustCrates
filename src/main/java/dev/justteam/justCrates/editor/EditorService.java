@@ -11,6 +11,11 @@ import dev.justteam.justCrates.key.KeyService;
 import dev.justteam.justCrates.key.VirtualKeyService;
 import dev.justteam.justCrates.reward.RewardDefinition;
 import dev.justteam.justCrates.reward.RewardType;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -30,7 +35,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class EditorService {
-
     private final JavaPlugin plugin;
     private final PluginPaths paths;
     private final CrateService crateService;
@@ -47,8 +51,7 @@ public final class EditorService {
     private final List<UUID> unbindMode = new ArrayList<>();
     private final Map<UUID, Integer> hologramAwaitingLineInput = new ConcurrentHashMap<>();
 
-    public EditorService(JavaPlugin plugin, PluginPaths paths, CrateService crateService, KeyService keyService,
-            BlockCrateService blockCrateService) {
+    public EditorService(JavaPlugin plugin, PluginPaths paths, CrateService crateService, KeyService keyService, BlockCrateService blockCrateService) {
         this.plugin = plugin;
         this.paths = paths;
         this.crateService = crateService;
@@ -70,15 +73,6 @@ public final class EditorService {
 
     public boolean hasPendingInput(Player player) {
         return pendingInput.containsKey(player.getUniqueId());
-    }
-
-    public EditorInput getPendingInput(Player player) {
-        return pendingInput.get(player.getUniqueId());
-    }
-
-    public void clearPendingInput(Player player) {
-        pendingInput.remove(player.getUniqueId());
-        hologramAwaitingLineInput.remove(player.getUniqueId());
     }
 
     public void openMainMenu(Player player) {
@@ -411,24 +405,24 @@ public final class EditorService {
                 "TOTEM", "SMOKE_NORMAL", "CLOUD", "LAVA", "GLOW", "NONE"
         };
 
-        net.md_5.bungee.api.chat.ComponentBuilder builder = new net.md_5.bungee.api.chat.ComponentBuilder("");
+        ComponentBuilder builder = new ComponentBuilder("");
         for (int i = 0; i < popularParticles.length; i++) {
             String p = popularParticles[i];
-            net.md_5.bungee.api.chat.TextComponent comp = new net.md_5.bungee.api.chat.TextComponent(p);
+            TextComponent comp = new TextComponent(p);
             if (p.equals("NONE")) {
-                comp.setColor(net.md_5.bungee.api.ChatColor.RED);
+                comp.setColor(ChatColor.RED);
             } else {
-                comp.setColor(net.md_5.bungee.api.ChatColor.AQUA);
+                comp.setColor(ChatColor.AQUA);
             }
-            comp.setClickEvent(new net.md_5.bungee.api.chat.ClickEvent(
-                    net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND, "/justcrates _editchat " + p));
-            comp.setHoverEvent(new net.md_5.bungee.api.chat.HoverEvent(
-                    net.md_5.bungee.api.chat.HoverEvent.Action.SHOW_TEXT,
-                    new net.md_5.bungee.api.chat.ComponentBuilder(Text.color("&aClick to set to &f" + p)).create()));
+            comp.setClickEvent(new ClickEvent(
+                    ClickEvent.Action.RUN_COMMAND, "/justcrates _editchat " + p));
+            comp.setHoverEvent(new HoverEvent(
+                    HoverEvent.Action.SHOW_TEXT,
+                    new ComponentBuilder(Text.color("&aClick to set to &f" + p)).create()));
             builder.append(comp);
             if (i < popularParticles.length - 1) {
-                builder.append(new net.md_5.bungee.api.chat.TextComponent(" | "))
-                        .color(net.md_5.bungee.api.ChatColor.GRAY);
+                builder.append(new TextComponent(" | "))
+                        .color(ChatColor.GRAY);
             }
         }
         player.spigot().sendMessage(builder.create());
@@ -539,8 +533,7 @@ public final class EditorService {
             case "crates" -> openCratesMenu(player);
             case "keys" -> openKeysMenu(player);
             case "close" -> player.closeInventory();
-            default -> {
-            }
+            default -> {}
         }
     }
 
@@ -1436,12 +1429,12 @@ public final class EditorService {
     }
 
     private void sendCommandRewardAction(Player player, String label, String action, String hover) {
-        net.md_5.bungee.api.chat.TextComponent button = new net.md_5.bungee.api.chat.TextComponent(Text.color(label));
-        button.setClickEvent(new net.md_5.bungee.api.chat.ClickEvent(
-                net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND, "/justcrates _editchat " + action));
-        button.setHoverEvent(new net.md_5.bungee.api.chat.HoverEvent(
-                net.md_5.bungee.api.chat.HoverEvent.Action.SHOW_TEXT,
-                new net.md_5.bungee.api.chat.ComponentBuilder(Text.color(hover)).create()));
+        TextComponent button = new TextComponent(Text.color(label));
+        button.setClickEvent(new ClickEvent(
+                ClickEvent.Action.RUN_COMMAND, "/justcrates _editchat " + action));
+        button.setHoverEvent(new HoverEvent(
+                HoverEvent.Action.SHOW_TEXT,
+                new ComponentBuilder(Text.color(hover)).create()));
         player.spigot().sendMessage(button);
     }
 
@@ -1553,47 +1546,47 @@ public final class EditorService {
             for (int i = 0; i < lines.size(); i++) {
                 int lineIndex = i + 1;
 
-                net.md_5.bungee.api.chat.TextComponent line = new net.md_5.bungee.api.chat.TextComponent(
+                TextComponent line = new TextComponent(
                         Text.color("&7line " + lineIndex + ": &f" + lines.get(i)));
-                line.setClickEvent(new net.md_5.bungee.api.chat.ClickEvent(
-                        net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND,
+                line.setClickEvent(new ClickEvent(
+                        ClickEvent.Action.RUN_COMMAND,
                         "/justcrates _editchat holo_edit " + lineIndex));
-                line.setHoverEvent(new net.md_5.bungee.api.chat.HoverEvent(
-                        net.md_5.bungee.api.chat.HoverEvent.Action.SHOW_TEXT,
-                        new net.md_5.bungee.api.chat.ComponentBuilder(Text.color("&aClick to edit this line")).create()));
+                line.setHoverEvent(new HoverEvent(
+                        HoverEvent.Action.SHOW_TEXT,
+                        new ComponentBuilder(Text.color("&aClick to edit this line")).create()));
 
-                net.md_5.bungee.api.chat.TextComponent spacer = new net.md_5.bungee.api.chat.TextComponent(" ");
+                TextComponent spacer = new TextComponent(" ");
 
-                net.md_5.bungee.api.chat.TextComponent remove = new net.md_5.bungee.api.chat.TextComponent(
+                TextComponent remove = new TextComponent(
                         Text.color("&c[X]"));
-                remove.setClickEvent(new net.md_5.bungee.api.chat.ClickEvent(
-                        net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND,
+                remove.setClickEvent(new ClickEvent(
+                        ClickEvent.Action.RUN_COMMAND,
                         "/justcrates _editchat holo_remove " + lineIndex));
-                remove.setHoverEvent(new net.md_5.bungee.api.chat.HoverEvent(
-                        net.md_5.bungee.api.chat.HoverEvent.Action.SHOW_TEXT,
-                        new net.md_5.bungee.api.chat.ComponentBuilder(Text.color("&cRemove line " + lineIndex))
+                remove.setHoverEvent(new HoverEvent(
+                        HoverEvent.Action.SHOW_TEXT,
+                        new ComponentBuilder(Text.color("&cRemove line " + lineIndex))
                                 .create()));
 
                 player.spigot().sendMessage(line, spacer, remove);
             }
         }
 
-        net.md_5.bungee.api.chat.TextComponent add = new net.md_5.bungee.api.chat.TextComponent(
+        TextComponent add = new TextComponent(
                 Text.color("&a[+ Add line]"));
-        add.setClickEvent(new net.md_5.bungee.api.chat.ClickEvent(
-                net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND, "/justcrates _editchat holo_add"));
-        add.setHoverEvent(new net.md_5.bungee.api.chat.HoverEvent(
-                net.md_5.bungee.api.chat.HoverEvent.Action.SHOW_TEXT,
-                new net.md_5.bungee.api.chat.ComponentBuilder(Text.color("&aClick and then type line text")).create()));
+        add.setClickEvent(new ClickEvent(
+                ClickEvent.Action.RUN_COMMAND, "/justcrates _editchat holo_add"));
+        add.setHoverEvent(new HoverEvent(
+                HoverEvent.Action.SHOW_TEXT,
+                new ComponentBuilder(Text.color("&aClick and then type line text")).create()));
 
-        net.md_5.bungee.api.chat.TextComponent spacer = new net.md_5.bungee.api.chat.TextComponent(" ");
+        TextComponent spacer = new TextComponent(" ");
 
-        net.md_5.bungee.api.chat.TextComponent done = new net.md_5.bungee.api.chat.TextComponent(Text.color("&7[Done]"));
-        done.setClickEvent(new net.md_5.bungee.api.chat.ClickEvent(
-                net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND, "/justcrates _editchat holo_done"));
-        done.setHoverEvent(new net.md_5.bungee.api.chat.HoverEvent(
-                net.md_5.bungee.api.chat.HoverEvent.Action.SHOW_TEXT,
-                new net.md_5.bungee.api.chat.ComponentBuilder(Text.color("&7Back to crate editor")).create()));
+        TextComponent done = new TextComponent(Text.color("&7[Done]"));
+        done.setClickEvent(new ClickEvent(
+                ClickEvent.Action.RUN_COMMAND, "/justcrates _editchat holo_done"));
+        done.setHoverEvent(new HoverEvent(
+                HoverEvent.Action.SHOW_TEXT,
+                new ComponentBuilder(Text.color("&7Back to crate editor")).create()));
 
         player.spigot().sendMessage(add, spacer, done);
     }
@@ -1746,4 +1739,3 @@ public final class EditorService {
         return Text.color(Text.toSmallCaps(input));
     }
 }
-

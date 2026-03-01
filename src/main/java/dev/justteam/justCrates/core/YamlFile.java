@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.IOException;
 
 public final class YamlFile {
-
     private final File file;
     private YamlConfiguration config;
 
@@ -27,12 +26,7 @@ public final class YamlFile {
         }
     }
 
-    public File getFile() {
-        return file;
-    }
-
     public YamlConfiguration getConfig() {
         return config;
     }
 }
-

@@ -13,11 +13,10 @@ import java.io.IOException;
 import java.util.UUID;
 
 public final class VirtualKeyService {
-
     private final JavaPlugin plugin;
     private final KeyService keyService;
     private final File file;
-    private YamlFile yaml;
+    private final YamlFile yaml;
 
     public VirtualKeyService(JavaPlugin plugin, PluginPaths paths, KeyService keyService) {
         this.plugin = plugin;
@@ -37,10 +36,6 @@ public final class VirtualKeyService {
 
     public int getKeys(UUID playerId, String keyId) {
         return yaml.getConfig().getInt(path(playerId, keyId), 0);
-    }
-
-    public boolean hasKeys(UUID playerId, String keyId, int amount) {
-        return getKeys(playerId, keyId) >= amount;
     }
 
     public void addKeys(UUID playerId, String keyId, int amount) {
@@ -65,19 +60,6 @@ public final class VirtualKeyService {
         int next = current - amount;
         cfg.set(path(playerId, keyId), next > 0 ? next : null);
         yaml.save();
-        return true;
-    }
-
-    public boolean convertFromInventory(Player player, String keyId, int amount) {
-        if (amount <= 0) {
-            return false;
-        }
-        int available = countPhysicalKeys(player, keyId);
-        if (available < amount) {
-            return false;
-        }
-        removePhysicalKeys(player, keyId, amount);
-        addKeys(player.getUniqueId(), keyId, amount);
         return true;
     }
 
@@ -140,4 +122,3 @@ public final class VirtualKeyService {
         }
     }
 }
-

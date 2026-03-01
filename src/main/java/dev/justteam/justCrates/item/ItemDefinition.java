@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class ItemDefinition {
-
     private final Material material;
     private final int amount;
     private final String name;
@@ -70,12 +69,7 @@ public final class ItemDefinition {
         return provider;
     }
 
-    public String getProviderItem() {
-        return providerItem;
-    }
-
     public String getDisplayNameOrDefault() {
         return Text.color(name != null ? name : material.name());
     }
 }
-

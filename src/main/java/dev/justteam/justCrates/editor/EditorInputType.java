@@ -15,4 +15,3 @@ public enum EditorInputType {
     SET_CRATE_HOLOGRAM,
     DELETE_CRATE_CONFIRM
 }
-

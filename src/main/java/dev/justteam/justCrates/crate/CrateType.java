@@ -4,4 +4,3 @@ public enum CrateType {
     BLOCK,
     GUI
 }
-

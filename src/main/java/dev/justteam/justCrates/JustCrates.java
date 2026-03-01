@@ -2,7 +2,6 @@ package dev.justteam.justCrates;
 
 import dev.justteam.justCrates.command.JustCratesCommand;
 import dev.justteam.justCrates.core.PluginPaths;
-import dev.justteam.justCrates.core.Text;
 import dev.justteam.justCrates.crate.BlockCrateService;
 import dev.justteam.justCrates.crate.CrateService;
 import dev.justteam.justCrates.editor.EditorListener;

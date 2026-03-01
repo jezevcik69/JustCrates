@@ -6,7 +6,6 @@ import java.util.Locale;
 import java.util.Map;
 
 public final class CrateRegistry {
-
     private final Map<String, CrateDefinition> crates = new HashMap<>();
 
     public void register(CrateDefinition crate) {
@@ -28,4 +27,3 @@ public final class CrateRegistry {
         crates.clear();
     }
 }
-
