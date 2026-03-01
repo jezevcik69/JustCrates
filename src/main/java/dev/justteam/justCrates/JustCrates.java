@@ -51,7 +51,7 @@ public final class JustCrates extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new GuiListener(this, virtualKeyService), this);
         getServer().getPluginManager().registerEvents(new EditorListener(editorService), this);
 
-        getLogger().info(Text.color("&aJustCrates enabled."));
+        getLogger().info("JustCrates has been enabled!");
     }
 
     @Override
@@ -61,6 +61,7 @@ public final class JustCrates extends JavaPlugin {
         if (this.virtualKeyService != null) {
             this.virtualKeyService.save();
         }
+        getLogger().info("JustCrates has been disabled!");
     }
 
     public KeyService getKeyService() {
