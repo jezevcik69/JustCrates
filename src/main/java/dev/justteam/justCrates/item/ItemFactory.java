@@ -16,11 +16,13 @@ public final class ItemFactory {
     private final JavaPlugin plugin;
     private final ProviderRegistry providerRegistry;
     private final NamespacedKey keyIdTag;
+    private final NamespacedKey virtualKeyTag;
 
     public ItemFactory(JavaPlugin plugin, ProviderRegistry providerRegistry) {
         this.plugin = plugin;
         this.providerRegistry = providerRegistry;
         this.keyIdTag = new NamespacedKey(plugin, "key_id");
+        this.virtualKeyTag = new NamespacedKey(plugin, "virtual_key");
     }
 
     public ItemStack createItem(ItemDefinition definition) {
@@ -91,5 +93,27 @@ public final class ItemFactory {
         }
         String stored = stack.getItemMeta().getPersistentDataContainer().get(keyIdTag, PersistentDataType.STRING);
         return stored != null && stored.equalsIgnoreCase(keyId);
+    }
+
+    public ItemStack markVirtualKey(ItemStack stack, String keyId) {
+        if (stack == null) {
+            return null;
+        }
+        ItemMeta meta = stack.getItemMeta();
+        if (meta == null) {
+            return stack;
+        }
+        meta.getPersistentDataContainer().set(keyIdTag, PersistentDataType.STRING, keyId.toLowerCase());
+        meta.getPersistentDataContainer().set(virtualKeyTag, PersistentDataType.BYTE, (byte) 1);
+        stack.setItemMeta(meta);
+        return stack;
+    }
+
+    public boolean isVirtualKey(ItemStack stack) {
+        if (stack == null || !stack.hasItemMeta()) {
+            return false;
+        }
+        Byte val = stack.getItemMeta().getPersistentDataContainer().get(virtualKeyTag, PersistentDataType.BYTE);
+        return val != null && val == 1;
     }
 }

@@ -5,6 +5,8 @@ import dev.justteam.justCrates.core.Text;
 import dev.justteam.justCrates.gui.CratePreviewHolder;
 import dev.justteam.justCrates.gui.VirtualKeyGui;
 import dev.justteam.justCrates.gui.VirtualKeyMenuHolder;
+import dev.justteam.justCrates.key.KeyDefinition;
+import dev.justteam.justCrates.key.KeyService;
 import dev.justteam.justCrates.key.VirtualKeyService;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -44,13 +46,42 @@ public final class GuiListener implements Listener {
             return;
         }
 
-        boolean converted = virtualKeyService.convertFromInventory(player, keyId, 1);
-        if (!converted) {
+        KeyService keyService = plugin.getKeyService();
+        KeyDefinition keyDef = keyService.getKey(keyId);
+        if (keyDef == null) {
+            return;
+        }
+
+        // Find and remove 1 physical key from inventory
+        boolean found = false;
+        ItemStack[] contents = player.getInventory().getContents();
+        for (int i = 0; i < contents.length; i++) {
+            ItemStack item = contents[i];
+            if (item == null || item.getAmount() <= 0) {
+                continue;
+            }
+            if (keyService.isKey(item, keyId) && !keyService.isVirtualKey(item)) {
+                item.setAmount(item.getAmount() - 1);
+                if (item.getAmount() <= 0) {
+                    contents[i] = null;
+                }
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
             player.sendMessage(Text.chat("&cYou do not have this key in inventory."));
             return;
         }
-        player.sendMessage(Text.chat("&aKey converted to virtual key."));
-        VirtualKeyGui.open(plugin, player, plugin.getKeyService(), virtualKeyService);
+        player.getInventory().setContents(contents);
+
+        // Give virtual key item
+        ItemStack virtualKey = keyService.createVirtualKeyItem(keyDef);
+        if (virtualKey != null) {
+            player.getInventory().addItem(virtualKey);
+        }
+
+        player.sendMessage(Text.chat("&aKey converted to virtual key item."));
+        VirtualKeyGui.open(plugin, player, keyService, virtualKeyService);
     }
 }
-

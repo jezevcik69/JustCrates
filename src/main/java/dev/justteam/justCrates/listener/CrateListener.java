@@ -8,6 +8,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 
 public final class CrateListener implements Listener {
 
@@ -20,6 +21,9 @@ public final class CrateListener implements Listener {
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
         if (event.isCancelled()) {
+            return;
+        }
+        if (event.getHand() != EquipmentSlot.HAND) {
             return;
         }
         if (event.getClickedBlock() == null) {

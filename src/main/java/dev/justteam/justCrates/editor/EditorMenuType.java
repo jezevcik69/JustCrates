@@ -7,5 +7,6 @@ public enum EditorMenuType {
     KEY_EDIT,
     CRATE_EDIT,
     REWARDS,
-    KEY_SELECT
+    KEY_SELECT,
+    ROLL_TYPE_SELECT
 }

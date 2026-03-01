@@ -10,6 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -60,9 +61,41 @@ public final class EditorListener implements Listener {
         });
     }
 
+    @EventHandler
+    public void onCommand(PlayerCommandPreprocessEvent event) {
+        String message = event.getMessage();
+        if (message.startsWith("/justcrates _editchat ")) {
+            event.setCancelled(true);
+            Player player = event.getPlayer();
+            if (!editorService.hasPendingInput(player)) {
+                return;
+            }
+            String input = message.substring("/justcrates _editchat ".length());
+            Bukkit.getScheduler().runTask(editorService.getPlugin(), () -> {
+                editorService.handleChatInput(player, input);
+            });
+        }
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
+        if (editorService.isInUnbindMode(player)) {
+            if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK) {
+                return;
+            }
+            Block block = event.getClickedBlock();
+            if (block == null) {
+                return;
+            }
+            event.setCancelled(true);
+            editorService.clearUnbindMode(player);
+            editorService.getBlockCrateService().unbind(block.getLocation());
+            editorService.getBlockCrateService().save();
+            player.sendMessage(Text.chat("&aCrate block unbound."));
+            return;
+        }
+
         if (!editorService.isInBindMode(player)) {
             return;
         }
@@ -85,4 +118,3 @@ public final class EditorListener implements Listener {
         editorService.openCrateEditor(player, crateId);
     }
 }
-

@@ -38,7 +38,7 @@ public final class JustCrates extends JavaPlugin {
         this.keyService = new KeyService(this, providerRegistry, paths);
         this.virtualKeyService = new VirtualKeyService(this, paths, keyService);
         this.crateService = new CrateService(this, providerRegistry, paths, keyService, virtualKeyService);
-        this.blockCrateService = new BlockCrateService(this, paths);
+        this.blockCrateService = new BlockCrateService(this, paths, crateService);
         this.editorService = new EditorService(this, paths, crateService, keyService, blockCrateService);
 
         this.keyService.loadAll();

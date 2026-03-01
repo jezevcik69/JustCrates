@@ -13,8 +13,10 @@ public final class CrateDefinition {
     private final String keyId;
     private final RollDefinition rollDefinition;
     private final List<RewardDefinition> rewards;
+    private final String particle;
 
-    public CrateDefinition(String id, CrateType type, String name, List<String> lore, String keyId, RollDefinition rollDefinition, List<RewardDefinition> rewards) {
+    public CrateDefinition(String id, CrateType type, String name, List<String> lore, String keyId,
+            RollDefinition rollDefinition, List<RewardDefinition> rewards, String particle) {
         this.id = id;
         this.type = type;
         this.name = name;
@@ -22,6 +24,7 @@ public final class CrateDefinition {
         this.keyId = keyId;
         this.rollDefinition = rollDefinition;
         this.rewards = rewards;
+        this.particle = particle;
     }
 
     public String getId() {
@@ -50,5 +53,9 @@ public final class CrateDefinition {
 
     public List<RewardDefinition> getRewards() {
         return rewards;
+    }
+
+    public String getParticle() {
+        return particle;
     }
 }

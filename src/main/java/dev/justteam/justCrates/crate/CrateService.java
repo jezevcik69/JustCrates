@@ -2,7 +2,7 @@ package dev.justteam.justCrates.crate;
 
 import dev.justteam.justCrates.core.PluginPaths;
 import dev.justteam.justCrates.core.Text;
-import dev.justteam.justCrates.gui.RollGui;
+import dev.justteam.justCrates.gui.roll.RollGuiFactory;
 import dev.justteam.justCrates.item.ItemDefinition;
 import dev.justteam.justCrates.item.ItemFactory;
 import dev.justteam.justCrates.key.KeyService;
@@ -36,7 +36,8 @@ public final class CrateService {
     private final ItemFactory itemFactory;
     private final Random random;
 
-    public CrateService(JavaPlugin plugin, ProviderRegistry providerRegistry, PluginPaths paths, KeyService keyService, VirtualKeyService virtualKeyService) {
+    public CrateService(JavaPlugin plugin, ProviderRegistry providerRegistry, PluginPaths paths, KeyService keyService,
+            VirtualKeyService virtualKeyService) {
         this.plugin = plugin;
         this.providerRegistry = providerRegistry;
         this.paths = paths;
@@ -60,13 +61,20 @@ public final class CrateService {
             CrateType type = CrateType.valueOf(cfg.getString("type", "GUI").toUpperCase());
             String name = cfg.getString("display.name", "&aCrate " + id);
             List<String> lore = cfg.getStringList("display.lore");
+            String particle = cfg.getString("display.particle", "");
             String keyId = cfg.getString("key", "").trim();
 
+            RollType rollType;
+            try {
+                rollType = RollType.valueOf(cfg.getString("roll.type", "CSGO").toUpperCase());
+            } catch (IllegalArgumentException e) {
+                rollType = RollType.CSGO;
+            }
             int size = cfg.getInt("roll.size", 27);
             String title = cfg.getString("roll.title", name);
             int durationTicks = cfg.getInt("roll.duration-ticks", 60);
             int tickInterval = cfg.getInt("roll.tick-interval", 2);
-            RollDefinition roll = new RollDefinition(size, title, durationTicks, tickInterval);
+            RollDefinition roll = new RollDefinition(rollType, size, title, durationTicks, tickInterval);
 
             List<RewardDefinition> rewards = new ArrayList<>();
             List<Map<?, ?>> rewardMaps = cfg.getMapList("rewards");
@@ -103,7 +111,7 @@ public final class CrateService {
                 rewards.add(new RewardDefinition(rewardType, weight, commands, itemDef, itemStack));
             }
 
-            CrateDefinition crate = new CrateDefinition(id, type, name, lore, keyId, roll, rewards);
+            CrateDefinition crate = new CrateDefinition(id, type, name, lore, keyId, roll, rewards, particle);
             registry.register(crate);
         }
 
@@ -129,8 +137,25 @@ public final class CrateService {
             if (keyService.isKey(hand, crate.getKeyId())) {
                 hand.setAmount(hand.getAmount() - 1);
                 consumed = true;
-            } else if (virtualKeyService != null && virtualKeyService.takeKeys(player.getUniqueId(), crate.getKeyId(), 1)) {
-                consumed = true;
+            } else {
+                // Search inventory for virtual key items
+                ItemStack[] contents = player.getInventory().getContents();
+                for (int i = 0; i < contents.length; i++) {
+                    ItemStack item = contents[i];
+                    if (item != null && keyService.isKey(item, crate.getKeyId()) && keyService.isVirtualKey(item)) {
+                        item.setAmount(item.getAmount() - 1);
+                        if (item.getAmount() <= 0) {
+                            contents[i] = null;
+                        }
+                        player.getInventory().setContents(contents);
+                        consumed = true;
+                        break;
+                    }
+                }
+                if (!consumed && virtualKeyService != null
+                        && virtualKeyService.takeKeys(player.getUniqueId(), crate.getKeyId(), 1)) {
+                    consumed = true;
+                }
             }
         }
 
@@ -145,8 +170,7 @@ public final class CrateService {
                     Text.color("&7" + Text.toSmallCaps("Required: ") + "&f" + keyId),
                     10,
                     40,
-                    10
-            );
+                    10);
 
             if (block != null) {
                 BoundingBox box = block.getBoundingBox();
@@ -157,17 +181,17 @@ public final class CrateService {
                     knockback = player.getLocation().getDirection().setY(0).multiply(-1);
                 }
                 if (knockback.lengthSquared() >= 0.0001) {
-                    knockback.normalize().multiply(0.38);
+                    knockback.normalize().multiply(1.0);
                 } else {
                     knockback = new Vector(0, 0, 0);
                 }
-                knockback.setY(0.16);
+                knockback.setY(0.4);
                 player.setVelocity(knockback);
             }
             return;
         }
 
-        RollGui.open(plugin, player, crate, this);
+        RollGuiFactory.open(plugin, player, crate, this);
     }
 
     public RewardDefinition rollReward(CrateDefinition crate) {
@@ -207,4 +231,3 @@ public final class CrateService {
         }
     }
 }
-

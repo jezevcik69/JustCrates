@@ -19,7 +19,7 @@ import java.util.List;
 
 public final class VirtualKeyGui {
 
-    private static final String TITLE = "&8Virtual Keys • Converter";
+    private static final String TITLE = "&8Virtual Keys \u2022 Converter";
 
     private VirtualKeyGui() {
     }
@@ -52,8 +52,9 @@ public final class VirtualKeyGui {
                 List<String> lore = meta.getLore() != null ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
                 int amount = virtualKeyService.getKeys(player.getUniqueId(), key.getId());
                 lore.add(Text.color("&7Virtual: &e" + amount));
-                lore.add(Text.color("&bInventory -> Virtual"));
-                lore.add(Text.color("&aClick to convert 1 key"));
+                lore.add(Text.color("&8\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"));
+                lore.add(Text.color("&bLeft-click: Convert to virtual key item"));
+                lore.add(Text.color("&7Virtual keys can be stored in chests"));
                 meta.setLore(lore);
                 meta.getPersistentDataContainer().set(idKey, PersistentDataType.STRING, key.getId().toLowerCase());
                 item.setItemMeta(meta);

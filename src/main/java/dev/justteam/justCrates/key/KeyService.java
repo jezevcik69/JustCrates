@@ -97,6 +97,32 @@ public final class KeyService {
         return itemFactory.isKey(stack, keyId);
     }
 
+    public boolean isVirtualKey(ItemStack stack) {
+        return itemFactory.isVirtualKey(stack);
+    }
+
+    public ItemStack createVirtualKeyItem(KeyDefinition key) {
+        if (key == null) {
+            return null;
+        }
+        ItemStack stack = createKeyItem(key);
+        if (stack == null) {
+            return null;
+        }
+        ItemMeta meta = stack.getItemMeta();
+        if (meta != null) {
+            String name = meta.hasDisplayName() ? meta.getDisplayName() : Text.color(key.getName());
+            meta.setDisplayName(Text.color("&d\u2726 ") + name + Text.color(" &7(Virtual)"));
+            List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
+            lore.add(Text.color("&8\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"));
+            lore.add(Text.color("&dVirtual Key"));
+            lore.add(Text.color("&7Can be stored in chests"));
+            stack.setItemMeta(meta);
+        }
+        itemFactory.markVirtualKey(stack, key.getId());
+        return stack;
+    }
+
     public String resolveKeyId(ItemStack stack) {
         if (stack == null) {
             return null;

@@ -52,6 +52,10 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage(Text.chat("&cNo permission."));
                     return true;
                 }
+
+                // Forcefully clear any stuck or overlapping tasks from previous reloads
+                Bukkit.getScheduler().cancelTasks(plugin);
+
                 plugin.reloadConfig();
                 plugin.getKeyService().loadAll();
                 plugin.getCrateService().loadAll();
@@ -191,7 +195,8 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
                 online.getInventory().addItem(item);
                 given++;
             }
-            sender.sendMessage(Text.chat("&aGiven &f" + amount + "x &akey &7(" + keyId + ") &ato &f" + given + " &aplayer(s)."));
+            sender.sendMessage(
+                    Text.chat("&aGiven &f" + amount + "x &akey &7(" + keyId + ") &ato &f" + given + " &aplayer(s)."));
             return true;
         }
 
@@ -208,7 +213,8 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
         }
         item.setAmount(amount);
         target.getInventory().addItem(item);
-        sender.sendMessage(Text.chat("&aGiven &f" + amount + "x &akey &7(" + keyId + ") &ato &f" + target.getName() + "&a."));
+        sender.sendMessage(
+                Text.chat("&aGiven &f" + amount + "x &akey &7(" + keyId + ") &ato &f" + target.getName() + "&a."));
         return true;
     }
 
@@ -306,4 +312,3 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(Text.chat("&7/key <id> [player] [amount]"));
     }
 }
-

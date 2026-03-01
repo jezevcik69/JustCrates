@@ -18,23 +18,27 @@ public final class CratePreviewGui {
 
     public static void open(Player player, CrateDefinition crate) {
         List<ItemStack> rewards = RewardPreview.buildPreview(crate);
-        int size = 27;
+        int size = 54;
 
         CratePreviewHolder holder = new CratePreviewHolder(crate.getId());
-        Inventory inv = Bukkit.createInventory(holder, size, Text.color("&8Preview • " + crate.getName()));
+        Inventory inv = Bukkit.createInventory(holder, size, Text.color("&8Preview \u2022 " + crate.getName()));
         holder.setInventory(inv);
-        fill(inv, Material.BLACK_STAINED_GLASS_PANE, " ");
+
+        fillGradientBorder(inv);
         inv.setItem(4, infoItem(crate));
 
         int index = 0;
-        for (int row = 0; row < 3; row++) {
-            for (int col = 1; col <= 7; col++) {
-                if (index >= rewards.size()) {
-                    break;
-                }
-                int slot = row * 9 + col;
-                inv.setItem(slot, rewards.get(index++));
+        int[] contentSlots = {
+            10, 11, 12, 13, 14, 15, 16,
+            19, 20, 21, 22, 23, 24, 25,
+            28, 29, 30, 31, 32, 33, 34,
+            37, 38, 39, 40, 41, 42, 43
+        };
+        for (int slot : contentSlots) {
+            if (index >= rewards.size()) {
+                break;
             }
+            inv.setItem(slot, rewards.get(index++));
         }
 
         player.openInventory(inv);
@@ -44,26 +48,64 @@ public final class CratePreviewGui {
         ItemStack stack = new ItemStack(Material.ENDER_CHEST);
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(Text.color("&b" + crate.getName()));
+            meta.setDisplayName(Text.color("&b\u2726 " + crate.getName()));
             meta.setLore(List.of(
+                Text.color("&8\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"),
                 Text.color("&7ID: &f" + crate.getId()),
-                Text.color("&7Rewards preview"),
-                Text.color("&eLeft-click crate to open this menu")
+                Text.color("&7Key: &f" + (crate.getKeyId().isEmpty() ? "&cNone" : crate.getKeyId())),
+                Text.color("&7Rewards: &f" + crate.getRewards().size()),
+                Text.color("&8\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"),
+                Text.color("&eRight-click crate to open")
             ));
             stack.setItemMeta(meta);
         }
         return stack;
     }
 
-    private static void fill(Inventory inv, Material material, String name) {
+    private static void fillGradientBorder(Inventory inv) {
+        ItemStack dark = pane(Material.BLUE_STAINED_GLASS_PANE);
+        ItemStack accent = pane(Material.LIGHT_BLUE_STAINED_GLASS_PANE);
+        ItemStack corner = pane(Material.CYAN_STAINED_GLASS_PANE);
+
+        for (int i = 0; i < 54; i++) {
+            inv.setItem(i, dark);
+        }
+
+        // Corners
+        int[] corners = {0, 8, 45, 53};
+        for (int c : corners) {
+            inv.setItem(c, corner);
+        }
+
+        // Side accents (left/right columns, middle rows)
+        for (int row = 1; row < 5; row++) {
+            inv.setItem(row * 9, accent);
+            inv.setItem(row * 9 + 8, accent);
+        }
+
+        // Clear content area
+        int[] contentSlots = {
+            10, 11, 12, 13, 14, 15, 16,
+            19, 20, 21, 22, 23, 24, 25,
+            28, 29, 30, 31, 32, 33, 34,
+            37, 38, 39, 40, 41, 42, 43
+        };
+        for (int slot : contentSlots) {
+            inv.setItem(slot, null);
+        }
+
+        // Top row accent slots (around info item)
+        inv.setItem(3, accent);
+        inv.setItem(5, accent);
+    }
+
+    private static ItemStack pane(Material material) {
         ItemStack stack = new ItemStack(material);
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(name);
+            meta.setDisplayName(" ");
             stack.setItemMeta(meta);
         }
-        for (int i = 0; i < inv.getSize(); i++) {
-            inv.setItem(i, stack);
-        }
+        return stack;
     }
 }
