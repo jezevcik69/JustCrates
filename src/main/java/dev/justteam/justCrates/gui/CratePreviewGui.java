@@ -25,7 +25,6 @@ public final class CratePreviewGui {
         holder.setInventory(inv);
 
         fillGradientBorder(inv);
-        inv.setItem(4, infoItem(crate));
 
         int index = 0;
         int[] contentSlots = {
@@ -42,24 +41,6 @@ public final class CratePreviewGui {
         }
 
         player.openInventory(inv);
-    }
-
-    private static ItemStack infoItem(CrateDefinition crate) {
-        ItemStack stack = new ItemStack(Material.ENDER_CHEST);
-        ItemMeta meta = stack.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(Text.color("&b\u2726 " + crate.getName()));
-            meta.setLore(List.of(
-                Text.color("&8\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"),
-                Text.color("&7ID: &f" + crate.getId()),
-                Text.color("&7Key: &f" + (crate.getKeyId().isEmpty() ? "&cNone" : crate.getKeyId())),
-                Text.color("&7Rewards: &f" + crate.getRewards().size()),
-                Text.color("&8\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"),
-                Text.color("&eRight-click crate to open")
-            ));
-            stack.setItemMeta(meta);
-        }
-        return stack;
     }
 
     private static void fillGradientBorder(Inventory inv) {

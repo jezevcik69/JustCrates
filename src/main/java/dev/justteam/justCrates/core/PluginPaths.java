@@ -10,6 +10,7 @@ public final class PluginPaths {
     private final File dataFolder;
     private final File cratesFolder;
     private final File keysFolder;
+    private final File hologramsFolder;
     private final File blocksFile;
 
     public PluginPaths(JavaPlugin plugin) {
@@ -17,6 +18,7 @@ public final class PluginPaths {
         this.dataFolder = plugin.getDataFolder();
         this.cratesFolder = new File(dataFolder, "crates");
         this.keysFolder = new File(dataFolder, "keys");
+        this.hologramsFolder = new File(dataFolder, "holograms");
         this.blocksFile = new File(dataFolder, "blocks.yml");
     }
 
@@ -29,6 +31,9 @@ public final class PluginPaths {
         }
         if (!keysFolder.exists()) {
             keysFolder.mkdirs();
+        }
+        if (!hologramsFolder.exists()) {
+            hologramsFolder.mkdirs();
         }
 
         copyDefault("config.yml");
@@ -62,6 +67,10 @@ public final class PluginPaths {
 
     public File getKeysFolder() {
         return keysFolder;
+    }
+
+    public File getHologramsFolder() {
+        return hologramsFolder;
     }
 
     public File getBlocksFile() {

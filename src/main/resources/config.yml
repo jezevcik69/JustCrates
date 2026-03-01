@@ -1,13 +1,6 @@
 ﻿settings:
   language: "en"
   debug: false
-providers:
-  priority:
-    - "oraxen"
-    - "itemsadder"
-    - "nexo"
-    - "modelengine"
-    - "vanilla"
 gui:
   roll:
     default-size: 27
@@ -16,3 +9,10 @@ gui:
 sounds:
   roll: "ui.button.click"
   reward: "entity.player.levelup"
+hologram:
+  # Max number of lines per crate hologram.
+  max-lines: 6
+  # Used for newly created crates and as fallback when crate file has no hologram lines.
+  default-lines:
+    - "&e%crate_name%"
+    - "&7store: &fyour.store.com"

@@ -42,7 +42,7 @@ public final class RouletteRollGui {
         RollDefinition roll = crate.getRollDefinition();
         String title = Text.color(roll.getTitle());
 
-        Inventory inv = Bukkit.createInventory(null, 54, title);
+        Inventory inv = Bukkit.createInventory(new RollInventoryHolder(), 54, title);
 
         // Fill everything with dark glass
         ItemStack dark = pane(Material.BLACK_STAINED_GLASS_PANE);

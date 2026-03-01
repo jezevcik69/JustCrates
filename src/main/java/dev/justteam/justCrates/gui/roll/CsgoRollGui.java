@@ -31,7 +31,7 @@ public final class CsgoRollGui {
         RollDefinition roll = crate.getRollDefinition();
         String title = Text.color(roll.getTitle());
 
-        Inventory inv = Bukkit.createInventory(null, 27, title);
+        Inventory inv = Bukkit.createInventory(new RollInventoryHolder(), 27, title);
 
         // Fill border rows with gradient glass
         ItemStack dark = pane(Material.BLUE_STAINED_GLASS_PANE);

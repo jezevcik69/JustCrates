@@ -5,6 +5,9 @@ display:
   name: "&aStarter Crate"
   lore:
     - "&7Example crate"
+  hologram-lines:
+    - "&e%crate_name%"
+    - "&7store: &fyour.store.com"
 roll:
   size: 27
   title: "&aStarter Crate"

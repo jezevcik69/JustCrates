@@ -52,13 +52,23 @@ public final class RewardPreview {
             }
         }
 
-        ItemStack paper = new ItemStack(Material.PAPER);
+        Material material = Material.PAPER;
+        if (reward.getPreviewMaterial() != null && !reward.getPreviewMaterial().isBlank()) {
+            try {
+                material = Material.valueOf(reward.getPreviewMaterial().toUpperCase());
+            } catch (IllegalArgumentException ignored) {
+                material = Material.PAPER;
+            }
+        }
+        ItemStack paper = new ItemStack(material);
         ItemMeta meta = paper.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(Text.color("&eCommand Reward"));
-            if (reward.getCommands() != null && !reward.getCommands().isEmpty()) {
-                List<String> lore = reward.getCommands().stream().limit(3).map(cmd -> Text.color("&7" + cmd)).toList();
-                meta.setLore(lore);
+            String name = reward.getPreviewName() == null || reward.getPreviewName().isBlank()
+                    ? "&eCommand Reward"
+                    : reward.getPreviewName();
+            meta.setDisplayName(Text.color(name));
+            if (reward.getPreviewLore() != null && !reward.getPreviewLore().isEmpty()) {
+                meta.setLore(reward.getPreviewLore().stream().map(Text::color).toList());
             }
             paper.setItemMeta(meta);
         }

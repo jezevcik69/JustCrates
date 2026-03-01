@@ -46,8 +46,9 @@ public final class KeyService {
             List<String> lore = cfg.getStringList("display.lore");
             ItemStack itemStack = cfg.getItemStack("itemstack");
             ItemDefinition itemDef = ItemDefinition.fromSection(cfg.getConfigurationSection("item"));
+            boolean virtual = cfg.getBoolean("virtual", false);
 
-            KeyDefinition key = new KeyDefinition(id, name, lore, itemDef, itemStack);
+            KeyDefinition key = new KeyDefinition(id, name, lore, itemDef, itemStack, virtual);
             registry.register(key);
         }
 
@@ -174,6 +175,7 @@ public final class KeyService {
         cfg.set("item.custom-model-data", 0);
         cfg.set("item.provider", "");
         cfg.set("item.provider-item", "");
+        cfg.set("virtual", false);
 
         try {
             cfg.save(file);
@@ -211,6 +213,27 @@ public final class KeyService {
             return true;
         } catch (IOException e) {
             plugin.getLogger().severe("Failed to update key item: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean updateKeyVirtualMode(String id, boolean virtual) {
+        if (id == null || id.isBlank()) {
+            return false;
+        }
+
+        File file = new File(paths.getKeysFolder(), id.toLowerCase(Locale.ROOT) + ".yml");
+        if (!file.exists()) {
+            return false;
+        }
+
+        YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+        cfg.set("virtual", virtual);
+        try {
+            cfg.save(file);
+            return true;
+        } catch (IOException e) {
+            plugin.getLogger().severe("Failed to update key virtual mode: " + e.getMessage());
             return false;
         }
     }

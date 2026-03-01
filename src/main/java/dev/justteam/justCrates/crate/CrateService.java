@@ -11,6 +11,8 @@ import dev.justteam.justCrates.provider.ProviderRegistry;
 import dev.justteam.justCrates.reward.RewardDefinition;
 import dev.justteam.justCrates.reward.RewardType;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -20,8 +22,10 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 
@@ -62,6 +66,11 @@ public final class CrateService {
             String name = cfg.getString("display.name", "&aCrate " + id);
             List<String> lore = cfg.getStringList("display.lore");
             String particle = cfg.getString("display.particle", "");
+            List<String> hologramLines = loadHologramLines(id, cfg);
+            int maxLines = Math.max(1, plugin.getConfig().getInt("hologram.max-lines", 6));
+            if (hologramLines.size() > maxLines) {
+                hologramLines = new ArrayList<>(hologramLines.subList(0, maxLines));
+            }
             String keyId = cfg.getString("key", "").trim();
 
             RollType rollType;
@@ -107,11 +116,25 @@ public final class CrateService {
                     temp.set("itemstack", map.get("itemstack"));
                     itemStack = temp.getItemStack("itemstack");
                 }
+                String previewMaterial = map.containsKey("preview-material")
+                        ? String.valueOf(map.get("preview-material"))
+                        : null;
+                String previewName = map.containsKey("preview-name")
+                        ? String.valueOf(map.get("preview-name"))
+                        : null;
+                List<String> previewLore = new ArrayList<>();
+                if (map.containsKey("preview-lore") && map.get("preview-lore") instanceof List<?> loreList) {
+                    for (Object line : loreList) {
+                        previewLore.add(String.valueOf(line));
+                    }
+                }
 
-                rewards.add(new RewardDefinition(rewardType, weight, commands, itemDef, itemStack));
+                rewards.add(new RewardDefinition(rewardType, weight, commands, itemDef, itemStack, previewMaterial,
+                        previewName, previewLore));
             }
 
-            CrateDefinition crate = new CrateDefinition(id, type, name, lore, keyId, roll, rewards, particle);
+            CrateDefinition crate = new CrateDefinition(id, type, name, lore, keyId, roll, rewards, particle,
+                    hologramLines);
             registry.register(crate);
         }
 
@@ -217,6 +240,7 @@ public final class CrateService {
                 String command = cmd.replace("%player%", player.getName());
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
             }
+            player.sendMessage(Text.chat("&aYou got &f" + resolveRewardDisplayName(reward) + "&a!"));
             return;
         }
 
@@ -228,6 +252,80 @@ public final class CrateService {
         }
         if (item != null) {
             player.getInventory().addItem(item);
+            player.sendMessage(Text.chat("&aYou got &f" + resolveRewardDisplayName(reward) + "&a!"));
+        }
+    }
+
+    private String resolveRewardDisplayName(RewardDefinition reward) {
+        if (reward == null) {
+            return "Reward";
+        }
+        if (reward.getType() == RewardType.COMMAND) {
+            if (reward.getPreviewName() != null && !reward.getPreviewName().isBlank()) {
+                return ChatColor.stripColor(Text.color(reward.getPreviewName()));
+            }
+            return "Command Reward";
+        }
+
+        if (reward.getItemStack() != null && reward.getItemStack().hasItemMeta()) {
+            if (reward.getItemStack().getItemMeta().hasDisplayName()) {
+                return ChatColor.stripColor(reward.getItemStack().getItemMeta().getDisplayName());
+            }
+        }
+        if (reward.getItemDefinition() != null) {
+            if (reward.getItemDefinition().getName() != null && !reward.getItemDefinition().getName().isBlank()) {
+                return ChatColor.stripColor(Text.color(reward.getItemDefinition().getName()));
+            }
+            Material material = reward.getItemDefinition().getMaterial();
+            if (material != null) {
+                return material.name().toLowerCase().replace('_', ' ');
+            }
+        }
+        return "Reward";
+    }
+
+    private List<String> getDefaultHologramLines() {
+        List<String> defaults = plugin.getConfig().getStringList("hologram.default-lines");
+        if (defaults.isEmpty()) {
+            return List.of("&e%crate_name%", "&7store: &fyour.store.com");
+        }
+        return defaults;
+    }
+
+    private List<String> loadHologramLines(String crateId, YamlConfiguration crateCfg) {
+        File hologramFile = getHologramFile(crateId);
+        List<String> lines;
+
+        if (hologramFile.exists()) {
+            YamlConfiguration hCfg = YamlConfiguration.loadConfiguration(hologramFile);
+            lines = new ArrayList<>(hCfg.getStringList("lines"));
+        } else {
+            lines = crateCfg.contains("display.hologram-lines")
+                    ? new ArrayList<>(crateCfg.getStringList("display.hologram-lines"))
+                    : new ArrayList<>(getDefaultHologramLines());
+            saveHologramFile(hologramFile, crateId, lines);
+        }
+
+        int maxLines = Math.max(1, plugin.getConfig().getInt("hologram.max-lines", 6));
+        if (lines.size() > maxLines) {
+            lines = new ArrayList<>(lines.subList(0, maxLines));
+            saveHologramFile(hologramFile, crateId, lines);
+        }
+        return lines;
+    }
+
+    private File getHologramFile(String crateId) {
+        return new File(paths.getHologramsFolder(), crateId.toLowerCase(Locale.ROOT) + ".yml");
+    }
+
+    private void saveHologramFile(File file, String crateId, List<String> lines) {
+        YamlConfiguration cfg = new YamlConfiguration();
+        cfg.set("crate-id", crateId.toLowerCase(Locale.ROOT));
+        cfg.set("lines", lines);
+        try {
+            cfg.save(file);
+        } catch (IOException e) {
+            plugin.getLogger().severe("Failed to save hologram file " + file.getName() + ": " + e.getMessage());
         }
     }
 }

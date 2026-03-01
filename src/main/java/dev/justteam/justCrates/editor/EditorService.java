@@ -1,5 +1,6 @@
 package dev.justteam.justCrates.editor;
 
+import dev.justteam.justCrates.JustCrates;
 import dev.justteam.justCrates.core.PluginPaths;
 import dev.justteam.justCrates.core.Text;
 import dev.justteam.justCrates.crate.BlockCrateService;
@@ -7,6 +8,7 @@ import dev.justteam.justCrates.crate.CrateDefinition;
 import dev.justteam.justCrates.crate.CrateService;
 import dev.justteam.justCrates.key.KeyDefinition;
 import dev.justteam.justCrates.key.KeyService;
+import dev.justteam.justCrates.key.VirtualKeyService;
 import dev.justteam.justCrates.reward.RewardDefinition;
 import dev.justteam.justCrates.reward.RewardType;
 import org.bukkit.Bukkit;
@@ -48,6 +50,7 @@ public final class EditorService {
     private final Map<UUID, EditorInput> pendingInput = new ConcurrentHashMap<>();
     private final Map<UUID, String> bindMode = new ConcurrentHashMap<>();
     private final List<UUID> unbindMode = new ArrayList<>();
+    private final Map<UUID, Integer> hologramAwaitingLineInput = new ConcurrentHashMap<>();
 
     public EditorService(JavaPlugin plugin, PluginPaths paths, CrateService crateService, KeyService keyService,
             BlockCrateService blockCrateService) {
@@ -80,6 +83,7 @@ public final class EditorService {
 
     public void clearPendingInput(Player player) {
         pendingInput.remove(player.getUniqueId());
+        hologramAwaitingLineInput.remove(player.getUniqueId());
     }
 
     public void openMainMenu(Player player) {
@@ -100,7 +104,7 @@ public final class EditorService {
         fillBorder(inv);
         inv.setItem(49, actionItem(Material.LIME_CONCRETE, "&aCreate Crate", "create_crate",
                 "&7Create new crate by ID"));
-        inv.setItem(53, actionItem(Material.ARROW, "&7Back", "back", "&7Back"));
+        inv.setItem(53, actionItem(Material.ARROW, "&7Back", "back", "&7Return to editor"));
 
         int slot = 10;
         for (CrateDefinition crate : crateService.getCrates()) {
@@ -137,7 +141,7 @@ public final class EditorService {
         fillBorder(inv);
         inv.setItem(49, actionItem(Material.LIME_CONCRETE, "&aCreate Key", "create_key",
                 "&7Create key by ID", "&7No item in hand required"));
-        inv.setItem(53, actionItem(Material.ARROW, "&7Back", "back", "&7Back"));
+        inv.setItem(53, actionItem(Material.ARROW, "&7Back", "back", "&7Return to editor"));
 
         int slot = 10;
         for (KeyDefinition key : keyService.getKeys()) {
@@ -184,12 +188,17 @@ public final class EditorService {
             List<String> lore = previewMeta.getLore() == null ? new ArrayList<>()
                     : new ArrayList<>(previewMeta.getLore());
             lore.add(ui("&7ID: &f" + keyId));
+            lore.add(ui("&7Mode: &f" + (key.isVirtual() ? "Virtual" : "Physical")));
             lore.add(ui("&7Current key icon"));
             previewMeta.setLore(lore);
             preview.setItemMeta(previewMeta);
         }
 
         inv.setItem(13, preview);
+        inv.setItem(12, actionItem(Material.ENDER_EYE, "&dToggle Virtual", "toggle_virtual_key",
+                "&7Current: &f" + (key.isVirtual() ? "Virtual" : "Physical"),
+                "&7Virtual key is stored as balance",
+                "&7and can be used in crate key checks"));
         inv.setItem(11, actionItem(Material.ITEM_FRAME, "&bSet Icon From Cursor", "set_key_icon",
                 "&7Pick any item from inventory", "&7then click this button"));
         inv.setItem(15, actionItem(Material.EMERALD, "&aGet 1x Key", "give_key",
@@ -224,22 +233,33 @@ public final class EditorService {
         }
         inv.setItem(4, info);
 
-        inv.setItem(11, actionItem(Material.CHAIN, "&aBind Block", "bind_block",
-                "&7Click a block", "&7to bind"));
-        inv.setItem(12, actionItem(Material.BARRIER, "&cUnbind Block", "unbind_block",
+        inv.setItem(20, actionItem(Material.BARRIER, "&cUnbind Block", "unbind_block",
                 "&7Click a block", "&7to unbind"));
-        inv.setItem(13, actionItem(Material.TRIPWIRE_HOOK, "&eSelect Key", "select_key",
+        inv.setItem(21, actionItem(Material.TRIPWIRE_HOOK, "&eSelect Key", "select_key",
                 "&7Select an existing key"));
-        inv.setItem(15, actionItem(Material.CHEST_MINECART, "&bRewards", "rewards",
+        inv.setItem(22, actionItem(Material.CHEST_MINECART, "&bRewards", "rewards",
                 "&7Add and edit"));
-        inv.setItem(20, actionItem(Material.BLAZE_POWDER, "&6Set Particle", "set_particle",
+        inv.setItem(23, actionItem(Material.HOPPER, "&dRoll Type", "roll_type",
+                "&7Current: &f" + crate.getRollDefinition().getRollType().name(),
+                "&7Click to change animation"));
+
+        List<String> hologramLines = crate.getHologramLines() == null ? List.of() : crate.getHologramLines();
+        String hologramPreview = hologramLines.isEmpty() ? "Disabled" : hologramLines.get(0);
+        inv.setItem(29, actionItem(Material.CHAIN, "&aBind Block", "bind_block",
+                "&7Click a block", "&7to bind"));
+        inv.setItem(30, actionItem(Material.NAME_TAG, "&bSet Hologram", "set_hologram",
+                "&7Lines: &f" + hologramLines.size(),
+                "&7Top: &f" + hologramPreview,
+                "&7Click to edit lines"));
+        inv.setItem(31, actionItem(Material.BLAZE_POWDER, "&6Set Particle", "set_particle",
                 "&7Current: &f"
                         + (crate.getParticle() == null || crate.getParticle().isBlank() ? "None" : crate.getParticle()),
                 "&7Click to set particle"));
-        inv.setItem(29, actionItem(Material.HOPPER, "&dRoll Type", "roll_type",
-                "&7Current: &f" + crate.getRollDefinition().getRollType().name(),
-                "&7Click to change animation"));
-        inv.setItem(40, actionItem(Material.ARROW, "&7Back", "back", "&7Back"));
+        inv.setItem(32, actionItem(Material.TNT, "&cDelete Crate", "delete_crate",
+                "&7Permanently deletes this crate",
+                "&7and unbinds all related blocks",
+                "&eClick to confirm in chat"));
+        inv.setItem(40, actionItem(Material.ARROW, "&7Back", "back", "&7Return to crates"));
 
         player.openInventory(inv);
     }
@@ -254,7 +274,11 @@ public final class EditorService {
         Inventory inv = Bukkit.createInventory(new EditorMenuHolder(EditorMenuType.REWARDS, crateId), 54,
                 ui("&8Rewards • " + crateId));
         fillBorder(inv);
-        inv.setItem(53, actionItem(Material.ARROW, "&7Back", "back", "&7Back"));
+        inv.setItem(49, actionItem(Material.COMMAND_BLOCK, "&cAdd Command Reward", "add_command_reward",
+                "&7Adds COMMAND reward via chat input",
+                "&7Type command only",
+                "&7Then edit name/material/lore by left click"));
+        inv.setItem(53, actionItem(Material.ARROW, "&7Back", "back", "&7Return to crate"));
 
         int slot = 10;
         int index = 0;
@@ -267,7 +291,11 @@ public final class EditorService {
             if (meta != null) {
                 List<String> lore = meta.getLore() == null ? new ArrayList<>() : new ArrayList<>(meta.getLore());
                 lore.add(ui("&7Weight: &f" + reward.getWeight()));
-                lore.add(ui("&7Left: change weight"));
+                if (reward.getType() == RewardType.COMMAND) {
+                    lore.add(ui("&7Left: edit command reward"));
+                } else {
+                    lore.add(ui("&7Left: change weight"));
+                }
                 lore.add(ui("&7Right: remove"));
                 meta.setLore(lore);
                 meta.getPersistentDataContainer().set(rewardIndexKey, PersistentDataType.INTEGER, index);
@@ -285,7 +313,7 @@ public final class EditorService {
         Inventory inv = Bukkit.createInventory(new EditorMenuHolder(EditorMenuType.KEY_SELECT, crateId), 54,
                 ui("&8Select Key • " + crateId));
         fillBorder(inv);
-        inv.setItem(53, actionItem(Material.ARROW, "&7Back", "back", "&7Back"));
+        inv.setItem(53, actionItem(Material.ARROW, "&7Back", "back", "&7Return to crate"));
 
         int slot = 10;
         for (KeyDefinition key : keyService.getKeys()) {
@@ -321,7 +349,7 @@ public final class EditorService {
                 "&7Items rotate around", "&7the perimeter of the GUI"));
         inv.setItem(15, actionItem(Material.REDSTONE, "&aInstant", "set_roll_instant",
                 "&7Instantly reveals the reward", "&7No animation"));
-        inv.setItem(22, actionItem(Material.ARROW, "&7Back", "back", "&7Back"));
+        inv.setItem(22, actionItem(Material.ARROW, "&7Back", "back", "&7Return to crate"));
         player.openInventory(inv);
     }
 
@@ -368,6 +396,14 @@ public final class EditorService {
         player.sendMessage(Text.chat("&eEnter new weight (number)."));
     }
 
+    public void startAddCommandReward(Player player, String crateId) {
+        pendingInput.put(player.getUniqueId(), new EditorInput(EditorInputType.ADD_COMMAND_REWARD, crateId, null));
+        player.closeInventory();
+        player.sendMessage(Text.chat("&eEnter command to execute on reward."));
+        player.sendMessage(Text.chat("&7Example: &fcrate key give %player% starter_key 1"));
+        player.sendMessage(Text.chat("&7Then left click reward to edit name/material/lore/weight."));
+    }
+
     public void startSetCrateParticle(Player player, String crateId) {
         pendingInput.put(player.getUniqueId(), new EditorInput(EditorInputType.SET_CRATE_PARTICLE, crateId, null));
         player.closeInventory();
@@ -404,6 +440,35 @@ public final class EditorService {
         player.sendMessage(Text.chat("&7Or type any other particle name manually. Type &cnone&7 to clear."));
     }
 
+    public void startSetCrateHologram(Player player, String crateId) {
+        pendingInput.put(player.getUniqueId(), new EditorInput(EditorInputType.SET_CRATE_HOLOGRAM, crateId, null));
+        hologramAwaitingLineInput.remove(player.getUniqueId());
+        player.closeInventory();
+        CrateDefinition crate = crateService.getCrate(crateId);
+        List<String> currentLines = crate == null || crate.getHologramLines() == null
+                ? List.of()
+                : crate.getHologramLines();
+
+        player.sendMessage(Text.chat("&eHologram editor for: &f" + crateId));
+        sendHologramEditorChat(player, currentLines);
+        player.sendMessage(Text.chat("&7Replace all: &fline1|line2|line3"));
+        player.sendMessage(Text.chat("&7Edit line: &fset <line> <text>"));
+        player.sendMessage(Text.chat("&7Remove line: &fremove <line>"));
+        player.sendMessage(Text.chat("&7Disable: &fnone"));
+        player.sendMessage(Text.chat("&7Exit editor: &fdone"));
+        player.sendMessage(Text.chat("&7RGB: &f&#FFAA00My Text"));
+        player.sendMessage(Text.chat("&7Max lines: &f" + getHologramMaxLines()));
+        player.sendMessage(Text.chat("&7Placeholders: &f%crate_name% &7and &f%crate_id%"));
+    }
+
+    public void startDeleteCrate(Player player, String crateId) {
+        pendingInput.put(player.getUniqueId(), new EditorInput(EditorInputType.DELETE_CRATE_CONFIRM, crateId, null));
+        player.closeInventory();
+        player.sendMessage(Text.chat("&cType &fdelete " + crateId + " &cto permanently delete this crate."));
+        player.sendMessage(Text.chat("&7This will also unbind all blocks linked to it."));
+        player.sendMessage(Text.chat("&7Type anything else to cancel."));
+    }
+
     public boolean isInBindMode(Player player) {
         return bindMode.containsKey(player.getUniqueId());
     }
@@ -437,17 +502,37 @@ public final class EditorService {
     }
 
     public void handleChatInput(Player player, String message) {
-        EditorInput input = pendingInput.remove(player.getUniqueId());
+        EditorInput input = pendingInput.get(player.getUniqueId());
         if (input == null) {
             return;
+        }
+
+        if (input.getType() != EditorInputType.SET_CRATE_HOLOGRAM
+                && input.getType() != EditorInputType.EDIT_COMMAND_REWARD_MENU) {
+            pendingInput.remove(player.getUniqueId());
         }
 
         switch (input.getType()) {
             case CREATE_CRATE -> handleCreateCrateInput(player, message);
             case CREATE_KEY -> handleCreateKeyInput(player, message);
+            case ADD_COMMAND_REWARD -> handleAddCommandRewardInput(player, message, input.getCrateId());
+            case EDIT_COMMAND_REWARD_MENU -> handleEditCommandRewardMenuInput(player, message, input.getCrateId(),
+                    input.getRewardIndex());
+            case SET_COMMAND_REWARD_NAME -> handleSetCommandRewardNameInput(player, message, input.getCrateId(),
+                    input.getRewardIndex());
+            case SET_COMMAND_REWARD_WEIGHT -> handleSetCommandRewardWeightInput(player, message, input.getCrateId(),
+                    input.getRewardIndex());
+            case SET_COMMAND_REWARD_MATERIAL -> handleSetCommandRewardMaterialInput(player, message, input.getCrateId(),
+                    input.getRewardIndex());
+            case SET_COMMAND_REWARD_LORE -> handleSetCommandRewardLoreInput(player, message, input.getCrateId(),
+                    input.getRewardIndex());
+            case SET_COMMAND_REWARD_COMMAND -> handleSetCommandRewardCommandInput(player, message, input.getCrateId(),
+                    input.getRewardIndex());
             case SET_REWARD_WEIGHT ->
                 handleSetRewardWeightInput(player, message, input.getCrateId(), input.getRewardIndex());
             case SET_CRATE_PARTICLE -> handleSetCrateParticleInput(player, message, input.getCrateId());
+            case SET_CRATE_HOLOGRAM -> handleSetCrateHologramInput(player, message, input.getCrateId());
+            case DELETE_CRATE_CONFIRM -> handleDeleteCrateConfirmInput(player, message, input.getCrateId());
         }
     }
 
@@ -517,6 +602,22 @@ public final class EditorService {
             openKeyEditor(player, keyId);
             return;
         }
+        if ("toggle_virtual_key".equals(action)) {
+            KeyDefinition key = keyService.getKey(keyId);
+            if (key == null) {
+                player.sendMessage(Text.chat("&cKey does not exist."));
+                return;
+            }
+            boolean next = !key.isVirtual();
+            if (!keyService.updateKeyVirtualMode(keyId, next)) {
+                player.sendMessage(Text.chat("&cFailed to update key mode."));
+                return;
+            }
+            keyService.loadAll();
+            player.sendMessage(Text.chat("&aKey mode set to: " + (next ? "Virtual" : "Physical")));
+            openKeyEditor(player, keyId);
+            return;
+        }
         if ("set_key_icon".equals(action)) {
             if (cursor == null || cursor.getType().isAir()) {
                 player.sendMessage(Text.chat("&cPick an item on cursor first."));
@@ -548,7 +649,9 @@ public final class EditorService {
             case "select_key" -> openKeySelectMenu(player, crateId);
             case "rewards" -> openRewardsMenu(player, crateId);
             case "set_particle" -> startSetCrateParticle(player, crateId);
+            case "set_hologram" -> startSetCrateHologram(player, crateId);
             case "roll_type" -> openRollTypeMenu(player, crateId);
+            case "delete_crate" -> startDeleteCrate(player, crateId);
             case "back" -> openCratesMenu(player);
             default -> {
             }
@@ -559,6 +662,10 @@ public final class EditorService {
             boolean rightClick) {
         if ("back".equals(action)) {
             openCrateEditor(player, crateId);
+            return;
+        }
+        if ("add_command_reward".equals(action)) {
+            startAddCommandReward(player, crateId);
             return;
         }
         if (data == null || crateId == null) {
@@ -573,7 +680,13 @@ public final class EditorService {
             crateService.loadAll();
             openRewardsMenu(player, crateId);
         } else {
-            startSetRewardWeight(player, crateId, index);
+            CrateDefinition crate = crateService.getCrate(crateId);
+            if (crate != null && index >= 0 && index < crate.getRewards().size()
+                    && crate.getRewards().get(index).getType() == RewardType.COMMAND) {
+                openCommandRewardEditor(player, crateId, index);
+            } else {
+                startSetRewardWeight(player, crateId, index);
+            }
         }
     }
 
@@ -616,8 +729,8 @@ public final class EditorService {
     }
 
     private void setCrateRollType(String crateId, String rollType) {
-        File file = new File(paths.getCratesFolder(), crateId.toLowerCase(Locale.ROOT) + ".yml");
-        if (!file.exists()) {
+        File file = resolveCrateFile(crateId);
+        if (file == null || !file.exists()) {
             return;
         }
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
@@ -635,11 +748,11 @@ public final class EditorService {
             player.sendMessage(Text.chat("&cInvalid ID. Use a-z, 0-9, - or _."));
             return;
         }
-        File file = new File(paths.getCratesFolder(), id + ".yml");
-        if (file.exists()) {
+        if (resolveCrateFile(id) != null) {
             player.sendMessage(Text.chat("&cA crate with this ID already exists."));
             return;
         }
+        File file = new File(paths.getCratesFolder(), id + ".yml");
 
         YamlConfiguration cfg = new YamlConfiguration();
         cfg.set("id", id);
@@ -656,6 +769,7 @@ public final class EditorService {
 
         try {
             cfg.save(file);
+            saveCrateHologramLines(id, getDefaultHologramLines());
             crateService.loadAll();
             player.sendMessage(Text.chat("&aCrate created: " + id));
             openCrateEditor(player, id);
@@ -697,8 +811,8 @@ public final class EditorService {
             }
         }
 
-        File file = new File(paths.getCratesFolder(), crateId.toLowerCase(Locale.ROOT) + ".yml");
-        if (!file.exists()) {
+        File file = resolveCrateFile(crateId);
+        if (file == null || !file.exists()) {
             player.sendMessage(Text.chat("&cCrate file not found."));
             return;
         }
@@ -714,6 +828,231 @@ public final class EditorService {
             plugin.getLogger().severe("Failed to save crate particle: " + e.getMessage());
             player.sendMessage(Text.chat("&cFailed to save particle."));
         }
+    }
+
+    private void handleSetCrateHologramInput(Player player, String message, String crateId) {
+        if (crateId == null) {
+            return;
+        }
+        int maxLines = getHologramMaxLines();
+
+        File file = resolveCrateFile(crateId);
+        if (file == null || !file.exists()) {
+            player.sendMessage(Text.chat("&cCrate file not found."));
+            return;
+        }
+
+        List<String> lines = loadCurrentHologramLines(crateId, file);
+        String raw = message == null ? "" : message.trim();
+        String lower = raw.toLowerCase(Locale.ROOT);
+
+        if (lower.equals("holo_done") || lower.equals("done") || lower.equals("exit") || lower.equals("cancel")) {
+            pendingInput.remove(player.getUniqueId());
+            hologramAwaitingLineInput.remove(player.getUniqueId());
+            openCrateEditor(player, crateId);
+            return;
+        }
+
+        if (lower.equals("holo_add") || lower.equals("+")) {
+            if (lines.size() >= maxLines) {
+                player.sendMessage(Text.chat("&cYou can have max " + maxLines + " lines."));
+                sendHologramEditorChat(player, lines);
+                return;
+            }
+            hologramAwaitingLineInput.put(player.getUniqueId(), -1);
+            player.sendMessage(Text.chat("&eType text for new line " + (lines.size() + 1) + "."));
+            return;
+        }
+
+        if (lower.startsWith("holo_edit ")) {
+            String[] parts = lower.split("\\s+", 2);
+            int lineIndex;
+            try {
+                lineIndex = Integer.parseInt(parts[1]);
+            } catch (Exception e) {
+                player.sendMessage(Text.chat("&cInvalid line."));
+                sendHologramEditorChat(player, lines);
+                return;
+            }
+            if (lineIndex < 1 || lineIndex > lines.size()) {
+                player.sendMessage(Text.chat("&cLine out of range."));
+                sendHologramEditorChat(player, lines);
+                return;
+            }
+            hologramAwaitingLineInput.put(player.getUniqueId(), lineIndex);
+            player.sendMessage(Text.chat("&eType new text for line " + lineIndex + "."));
+            return;
+        }
+
+        if (lower.startsWith("holo_remove ")) {
+            String[] parts = lower.split("\\s+", 2);
+            int lineIndex;
+            try {
+                lineIndex = Integer.parseInt(parts[1]);
+            } catch (Exception e) {
+                player.sendMessage(Text.chat("&cInvalid line."));
+                sendHologramEditorChat(player, lines);
+                return;
+            }
+            if (lineIndex < 1 || lineIndex > lines.size()) {
+                player.sendMessage(Text.chat("&cLine out of range."));
+                sendHologramEditorChat(player, lines);
+                return;
+            }
+            lines.remove(lineIndex - 1);
+            if (!saveCrateHologramLines(crateId, lines)) {
+                player.sendMessage(Text.chat("&cFailed to save hologram."));
+                return;
+            }
+            player.sendMessage(Text.chat(lines.isEmpty() ? "&aHologram disabled." : "&aLine removed."));
+            sendHologramEditorChat(player, lines);
+            return;
+        }
+
+        Integer awaitingLine = hologramAwaitingLineInput.remove(player.getUniqueId());
+        if (awaitingLine != null) {
+            if (raw.isBlank()) {
+                player.sendMessage(Text.chat("&cLine text cannot be empty."));
+                sendHologramEditorChat(player, lines);
+                return;
+            }
+            if (awaitingLine == -1) {
+                if (lines.size() >= maxLines) {
+                    player.sendMessage(Text.chat("&cYou can have max " + maxLines + " lines."));
+                    sendHologramEditorChat(player, lines);
+                    return;
+                }
+                lines.add(raw);
+            } else {
+                int idx = awaitingLine - 1;
+                if (idx < 0 || idx >= lines.size()) {
+                    player.sendMessage(Text.chat("&cLine out of range."));
+                    sendHologramEditorChat(player, lines);
+                    return;
+                }
+                lines.set(idx, raw);
+            }
+            if (!saveCrateHologramLines(crateId, lines)) {
+                player.sendMessage(Text.chat("&cFailed to save hologram."));
+                return;
+            }
+            player.sendMessage(Text.chat("&aHologram updated."));
+            sendHologramEditorChat(player, lines);
+            return;
+        }
+
+        if (lower.equals("none")) {
+            lines.clear();
+        } else if (lower.startsWith("set ")) {
+            String[] parts = raw.split("\\s+", 3);
+            if (parts.length < 3) {
+                player.sendMessage(Text.chat("&cUsage: set <line> <text>"));
+                sendHologramEditorChat(player, lines);
+                return;
+            }
+            int lineIndex;
+            try {
+                lineIndex = Integer.parseInt(parts[1]);
+            } catch (NumberFormatException e) {
+                player.sendMessage(Text.chat("&cLine must be a number."));
+                sendHologramEditorChat(player, lines);
+                return;
+            }
+            if (lineIndex < 1 || lineIndex > maxLines) {
+                player.sendMessage(Text.chat("&cLine must be between 1 and " + maxLines + "."));
+                sendHologramEditorChat(player, lines);
+                return;
+            }
+
+            while (lines.size() < lineIndex) {
+                lines.add("");
+            }
+            lines.set(lineIndex - 1, parts[2].trim());
+            lines.removeIf(String::isBlank);
+        } else if (lower.startsWith("remove ")) {
+            String[] parts = raw.split("\\s+", 2);
+            if (parts.length < 2) {
+                player.sendMessage(Text.chat("&cUsage: remove <line>"));
+                sendHologramEditorChat(player, lines);
+                return;
+            }
+            int lineIndex;
+            try {
+                lineIndex = Integer.parseInt(parts[1]);
+            } catch (NumberFormatException e) {
+                player.sendMessage(Text.chat("&cLine must be a number."));
+                sendHologramEditorChat(player, lines);
+                return;
+            }
+            if (lineIndex < 1 || lineIndex > lines.size()) {
+                player.sendMessage(Text.chat("&cLine out of range."));
+                sendHologramEditorChat(player, lines);
+                return;
+            }
+            lines.remove(lineIndex - 1);
+        } else if (!raw.isBlank()) {
+            lines.clear();
+            String[] split = raw.split("\\|");
+            for (String part : split) {
+                String line = part.trim();
+                if (!line.isBlank()) {
+                    lines.add(line);
+                }
+                if (lines.size() >= maxLines) {
+                    break;
+                }
+            }
+        } else {
+            player.sendMessage(Text.chat("&cInput is empty."));
+            sendHologramEditorChat(player, lines);
+            return;
+        }
+
+        if (!saveCrateHologramLines(crateId, lines)) {
+            player.sendMessage(Text.chat("&cFailed to save hologram."));
+            return;
+        }
+        player.sendMessage(Text.chat(lines.isEmpty() ? "&aHologram disabled." : "&aHologram updated."));
+        sendHologramEditorChat(player, lines);
+    }
+
+    private void handleDeleteCrateConfirmInput(Player player, String message, String crateId) {
+        if (crateId == null) {
+            return;
+        }
+
+        String expected = "delete " + crateId.toLowerCase(Locale.ROOT);
+        String input = message == null ? "" : message.trim().toLowerCase(Locale.ROOT);
+        if (!expected.equals(input)) {
+            player.sendMessage(Text.chat("&7Crate deletion cancelled."));
+            openCrateEditor(player, crateId);
+            return;
+        }
+
+        File file = resolveCrateFile(crateId);
+        if (file == null || !file.exists()) {
+            player.sendMessage(Text.chat("&cCrate file not found."));
+            openCratesMenu(player);
+            return;
+        }
+
+        int unbound = blockCrateService.unbindAll(crateId);
+        boolean deleted = file.delete();
+        if (!deleted) {
+            player.sendMessage(Text.chat("&cFailed to delete crate file."));
+            openCrateEditor(player, crateId);
+            return;
+        }
+        File hologramFile = resolveHologramFile(crateId);
+        if (hologramFile.exists()) {
+            hologramFile.delete();
+        }
+
+        blockCrateService.save();
+        crateService.loadAll();
+        blockCrateService.refreshHolograms();
+        player.sendMessage(Text.chat("&aCrate deleted: " + crateId + " &7(unbound: &f" + unbound + "&7)."));
+        openCratesMenu(player);
     }
 
     private void handleSetRewardWeightInput(Player player, String message, String crateId, Integer index) {
@@ -735,9 +1074,218 @@ public final class EditorService {
         openRewardsMenu(player, crateId);
     }
 
+    private void handleAddCommandRewardInput(Player player, String message, String crateId) {
+        if (crateId == null) {
+            return;
+        }
+        String raw = message == null ? "" : message.trim();
+        if (raw.isBlank()) {
+            player.sendMessage(Text.chat("&cCommand cannot be empty."));
+            return;
+        }
+
+        if (!addCommandReward(crateId, raw)) {
+            player.sendMessage(Text.chat("&cFailed to add command reward."));
+            return;
+        }
+
+        crateService.loadAll();
+        player.sendMessage(Text.chat("&aCommand reward added."));
+        CrateDefinition crate = crateService.getCrate(crateId);
+        if (crate == null || crate.getRewards().isEmpty()) {
+            openRewardsMenu(player, crateId);
+            return;
+        }
+        openCommandRewardEditor(player, crateId, crate.getRewards().size() - 1);
+    }
+
+    private void openCommandRewardEditor(Player player, String crateId, int rewardIndex) {
+        CrateDefinition crate = crateService.getCrate(crateId);
+        if (crate == null || rewardIndex < 0 || rewardIndex >= crate.getRewards().size()) {
+            player.sendMessage(Text.chat("&cReward not found."));
+            openRewardsMenu(player, crateId);
+            return;
+        }
+        RewardDefinition reward = crate.getRewards().get(rewardIndex);
+        if (reward.getType() != RewardType.COMMAND) {
+            startSetRewardWeight(player, crateId, rewardIndex);
+            return;
+        }
+
+        pendingInput.put(player.getUniqueId(),
+                new EditorInput(EditorInputType.EDIT_COMMAND_REWARD_MENU, crateId, rewardIndex));
+        player.closeInventory();
+        player.sendMessage(Text.chat("&eCommand Reward Editor (&f#" + (rewardIndex + 1) + "&e)"));
+        player.sendMessage(Text.chat("&7Name: &f"
+                + (reward.getPreviewName() == null || reward.getPreviewName().isBlank() ? "&cNone" : reward.getPreviewName())));
+        player.sendMessage(Text.chat("&7Weight: &f" + reward.getWeight()));
+        player.sendMessage(Text.chat("&7Material: &f"
+                + (reward.getPreviewMaterial() == null || reward.getPreviewMaterial().isBlank() ? "COMMAND_BLOCK"
+                        : reward.getPreviewMaterial())));
+        player.sendMessage(Text.chat("&7Lore lines: &f" + (reward.getPreviewLore() == null ? 0 : reward.getPreviewLore().size())));
+        player.sendMessage(Text.chat("&7Command: &f"
+                + (reward.getCommands() == null || reward.getCommands().isEmpty() ? "&cNone" : reward.getCommands().get(0))));
+
+        sendCommandRewardAction(player, "&b[Set Name]", "cmdr_set_name " + rewardIndex, "&7Change preview display name");
+        sendCommandRewardAction(player, "&e[Set Weight]", "cmdr_set_weight " + rewardIndex, "&7Change reward weight");
+        sendCommandRewardAction(player, "&d[Set Material]", "cmdr_set_material " + rewardIndex, "&7Change preview material");
+        sendCommandRewardAction(player, "&a[Set Lore]", "cmdr_set_lore " + rewardIndex,
+                "&7Set lore lines with | separator, or none");
+        sendCommandRewardAction(player, "&6[Set Command]", "cmdr_set_command " + rewardIndex, "&7Change executed command");
+        sendCommandRewardAction(player, "&7[Done]", "cmdr_done", "&7Back to rewards menu");
+    }
+
+    private void handleEditCommandRewardMenuInput(Player player, String message, String crateId, Integer rewardIndex) {
+        if (crateId == null || rewardIndex == null || message == null) {
+            return;
+        }
+        String input = message.trim().toLowerCase(Locale.ROOT);
+        if (input.equals("cmdr_done") || input.equals("done")) {
+            pendingInput.remove(player.getUniqueId());
+            openRewardsMenu(player, crateId);
+            return;
+        }
+
+        if (input.startsWith("cmdr_set_name")) {
+            pendingInput.put(player.getUniqueId(),
+                    new EditorInput(EditorInputType.SET_COMMAND_REWARD_NAME, crateId, rewardIndex));
+            player.sendMessage(Text.chat("&eType new preview name. Use colors (&). Type &fnone &eto clear."));
+            return;
+        }
+        if (input.startsWith("cmdr_set_weight")) {
+            pendingInput.put(player.getUniqueId(),
+                    new EditorInput(EditorInputType.SET_COMMAND_REWARD_WEIGHT, crateId, rewardIndex));
+            player.sendMessage(Text.chat("&eType new weight (number)."));
+            return;
+        }
+        if (input.startsWith("cmdr_set_material")) {
+            pendingInput.put(player.getUniqueId(),
+                    new EditorInput(EditorInputType.SET_COMMAND_REWARD_MATERIAL, crateId, rewardIndex));
+            player.sendMessage(Text.chat("&eType preview material (e.g. &fGOLD_INGOT&e)."));
+            return;
+        }
+        if (input.startsWith("cmdr_set_lore")) {
+            pendingInput.put(player.getUniqueId(),
+                    new EditorInput(EditorInputType.SET_COMMAND_REWARD_LORE, crateId, rewardIndex));
+            player.sendMessage(Text.chat("&eType lore lines separated by &f|&e. Type &fnone &eto clear lore."));
+            return;
+        }
+        if (input.startsWith("cmdr_set_command")) {
+            pendingInput.put(player.getUniqueId(),
+                    new EditorInput(EditorInputType.SET_COMMAND_REWARD_COMMAND, crateId, rewardIndex));
+            player.sendMessage(Text.chat("&eType command to run on reward."));
+            return;
+        }
+        player.sendMessage(Text.chat("&cUnknown action."));
+        openCommandRewardEditor(player, crateId, rewardIndex);
+    }
+
+    private void handleSetCommandRewardNameInput(Player player, String message, String crateId, Integer rewardIndex) {
+        if (crateId == null || rewardIndex == null) {
+            return;
+        }
+        String value = message == null ? "" : message.trim();
+        if (value.equalsIgnoreCase("none")) {
+            value = "";
+        }
+        final String previewNameValue = value;
+        if (!updateCommandReward(crateId, rewardIndex, map -> map.put("preview-name", previewNameValue))) {
+            player.sendMessage(Text.chat("&cFailed to update name."));
+            return;
+        }
+        crateService.loadAll();
+        player.sendMessage(Text.chat("&aPreview name updated."));
+        openCommandRewardEditor(player, crateId, rewardIndex);
+    }
+
+    private void handleSetCommandRewardWeightInput(Player player, String message, String crateId, Integer rewardIndex) {
+        if (crateId == null || rewardIndex == null) {
+            return;
+        }
+        int weight;
+        try {
+            weight = Math.max(1, Integer.parseInt(message.trim()));
+        } catch (Exception e) {
+            player.sendMessage(Text.chat("&cInvalid number."));
+            return;
+        }
+        if (!updateCommandReward(crateId, rewardIndex, map -> map.put("weight", weight))) {
+            player.sendMessage(Text.chat("&cFailed to update weight."));
+            return;
+        }
+        crateService.loadAll();
+        player.sendMessage(Text.chat("&aWeight updated."));
+        openCommandRewardEditor(player, crateId, rewardIndex);
+    }
+
+    private void handleSetCommandRewardMaterialInput(Player player, String message, String crateId,
+            Integer rewardIndex) {
+        if (crateId == null || rewardIndex == null || message == null) {
+            return;
+        }
+        String material = message.trim().toUpperCase(Locale.ROOT);
+        try {
+            Material.valueOf(material);
+        } catch (IllegalArgumentException e) {
+            player.sendMessage(Text.chat("&cInvalid material."));
+            return;
+        }
+        if (!updateCommandReward(crateId, rewardIndex, map -> map.put("preview-material", material))) {
+            player.sendMessage(Text.chat("&cFailed to update material."));
+            return;
+        }
+        crateService.loadAll();
+        player.sendMessage(Text.chat("&aPreview material updated."));
+        openCommandRewardEditor(player, crateId, rewardIndex);
+    }
+
+    private void handleSetCommandRewardLoreInput(Player player, String message, String crateId, Integer rewardIndex) {
+        if (crateId == null || rewardIndex == null || message == null) {
+            return;
+        }
+        String raw = message.trim();
+        List<String> lore = new ArrayList<>();
+        if (!raw.equalsIgnoreCase("none") && !raw.isBlank()) {
+            String[] split = raw.split("\\|");
+            for (String line : split) {
+                String trimmed = line.trim();
+                if (!trimmed.isBlank()) {
+                    lore.add(trimmed);
+                }
+            }
+        }
+
+        if (!updateCommandReward(crateId, rewardIndex, map -> map.put("preview-lore", lore))) {
+            player.sendMessage(Text.chat("&cFailed to update lore."));
+            return;
+        }
+        crateService.loadAll();
+        player.sendMessage(Text.chat("&aPreview lore updated."));
+        openCommandRewardEditor(player, crateId, rewardIndex);
+    }
+
+    private void handleSetCommandRewardCommandInput(Player player, String message, String crateId, Integer rewardIndex) {
+        if (crateId == null || rewardIndex == null || message == null) {
+            return;
+        }
+        String cmd = message.trim();
+        if (cmd.isBlank()) {
+            player.sendMessage(Text.chat("&cCommand cannot be empty."));
+            return;
+        }
+
+        if (!updateCommandReward(crateId, rewardIndex, map -> map.put("commands", List.of(cmd)))) {
+            player.sendMessage(Text.chat("&cFailed to update command."));
+            return;
+        }
+        crateService.loadAll();
+        player.sendMessage(Text.chat("&aCommand updated."));
+        openCommandRewardEditor(player, crateId, rewardIndex);
+    }
+
     private void setCrateKey(String crateId, String keyId) {
-        File file = new File(paths.getCratesFolder(), crateId.toLowerCase(Locale.ROOT) + ".yml");
-        if (!file.exists()) {
+        File file = resolveCrateFile(crateId);
+        if (file == null || !file.exists()) {
             return;
         }
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
@@ -750,8 +1298,8 @@ public final class EditorService {
     }
 
     private boolean setRewardWeight(String crateId, int index, int weight) {
-        File file = new File(paths.getCratesFolder(), crateId.toLowerCase(Locale.ROOT) + ".yml");
-        if (!file.exists()) {
+        File file = resolveCrateFile(crateId);
+        if (file == null || !file.exists()) {
             return false;
         }
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
@@ -785,8 +1333,8 @@ public final class EditorService {
     }
 
     private void removeReward(String crateId, int index) {
-        File file = new File(paths.getCratesFolder(), crateId.toLowerCase(Locale.ROOT) + ".yml");
-        if (!file.exists()) {
+        File file = resolveCrateFile(crateId);
+        if (file == null || !file.exists()) {
             return;
         }
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
@@ -816,10 +1364,112 @@ public final class EditorService {
         }
     }
 
+    private boolean addCommandReward(String crateId, String command) {
+        File file = resolveCrateFile(crateId);
+        if (file == null || !file.exists()) {
+            return false;
+        }
+
+        YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+        List<Map<?, ?>> rewards = cfg.getMapList("rewards");
+
+        List<Map<String, Object>> updated = new ArrayList<>();
+        for (Map<?, ?> reward : rewards) {
+            Map<String, Object> map = new HashMap<>();
+            for (Map.Entry<?, ?> entry : reward.entrySet()) {
+                if (entry.getKey() != null) {
+                    map.put(String.valueOf(entry.getKey()), entry.getValue());
+                }
+            }
+            updated.add(map);
+        }
+
+        Map<String, Object> commandReward = new HashMap<>();
+        commandReward.put("type", "COMMAND");
+        commandReward.put("weight", 1);
+        commandReward.put("commands", List.of(command));
+        commandReward.put("preview-material", "COMMAND_BLOCK");
+        commandReward.put("preview-name", "&cCommand Reward");
+        commandReward.put("preview-lore", new ArrayList<>());
+        updated.add(commandReward);
+
+        cfg.set("rewards", updated);
+        try {
+            cfg.save(file);
+            return true;
+        } catch (IOException e) {
+            plugin.getLogger().severe("Failed to add command reward: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private boolean updateCommandReward(String crateId, int index, java.util.function.Consumer<Map<String, Object>> updater) {
+        File file = resolveCrateFile(crateId);
+        if (file == null || !file.exists()) {
+            return false;
+        }
+        YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+        List<Map<?, ?>> rewards = cfg.getMapList("rewards");
+        if (index < 0 || index >= rewards.size()) {
+            return false;
+        }
+
+        List<Map<String, Object>> updated = new ArrayList<>();
+        for (int i = 0; i < rewards.size(); i++) {
+            Map<?, ?> reward = rewards.get(i);
+            Map<String, Object> map = new HashMap<>();
+            for (Map.Entry<?, ?> entry : reward.entrySet()) {
+                if (entry.getKey() != null) {
+                    map.put(String.valueOf(entry.getKey()), entry.getValue());
+                }
+            }
+            if (i == index) {
+                Object type = map.get("type");
+                if (type == null || !"COMMAND".equalsIgnoreCase(String.valueOf(type))) {
+                    return false;
+                }
+                updater.accept(map);
+            }
+            updated.add(map);
+        }
+        cfg.set("rewards", updated);
+        try {
+            cfg.save(file);
+            return true;
+        } catch (IOException e) {
+            plugin.getLogger().severe("Failed to update command reward: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private void sendCommandRewardAction(Player player, String label, String action, String hover) {
+        net.md_5.bungee.api.chat.TextComponent button = new net.md_5.bungee.api.chat.TextComponent(Text.color(label));
+        button.setClickEvent(new net.md_5.bungee.api.chat.ClickEvent(
+                net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND, "/justcrates _editchat " + action));
+        button.setHoverEvent(new net.md_5.bungee.api.chat.HoverEvent(
+                net.md_5.bungee.api.chat.HoverEvent.Action.SHOW_TEXT,
+                new net.md_5.bungee.api.chat.ComponentBuilder(Text.color(hover)).create()));
+        player.spigot().sendMessage(button);
+    }
+
     private void giveKey(Player sender, String keyId, Player target, int amount) {
         KeyDefinition key = keyService.getKey(keyId);
         if (key == null) {
             sender.sendMessage(Text.chat("&cKey does not exist."));
+            return;
+        }
+        if (key.isVirtual()) {
+            VirtualKeyService virtualKeyService = getVirtualKeyService();
+            if (virtualKeyService == null) {
+                sender.sendMessage(Text.chat("&cVirtual key service is not available."));
+                return;
+            }
+            virtualKeyService.addKeys(target.getUniqueId(), key.getId(), amount);
+            if (sender.getUniqueId().equals(target.getUniqueId())) {
+                sender.sendMessage(Text.chat("&aGiven virtual key: " + keyId + " x" + amount));
+            } else {
+                sender.sendMessage(Text.chat("&aGiven virtual key to " + target.getName() + ": " + keyId + " x" + amount));
+            }
             return;
         }
         ItemStack item = keyService.createKeyItem(key);
@@ -834,6 +1484,13 @@ public final class EditorService {
         }
     }
 
+    private VirtualKeyService getVirtualKeyService() {
+        if (plugin instanceof JustCrates justCrates) {
+            return justCrates.getVirtualKeyService();
+        }
+        return null;
+    }
+
     private boolean saveKeyItemFromCursor(Player player, String keyId, ItemStack cursor) {
         ItemStack icon = cursor.clone();
         icon.setAmount(1);
@@ -845,6 +1502,107 @@ public final class EditorService {
         player.sendMessage(Text.chat("&aKey icon updated: " + keyId));
         openKeyEditor(player, keyId);
         return true;
+    }
+
+    private boolean saveCrateHologramLines(String crateId, List<String> lines) {
+        File file = resolveHologramFile(crateId);
+        YamlConfiguration cfg = new YamlConfiguration();
+        cfg.set("crate-id", crateId.toLowerCase(Locale.ROOT));
+        cfg.set("lines", lines);
+        try {
+            cfg.save(file);
+            crateService.loadAll();
+            blockCrateService.refreshHolograms();
+            return true;
+        } catch (IOException e) {
+            plugin.getLogger().severe("Failed to save crate hologram: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private List<String> loadCurrentHologramLines(String crateId, File crateFile) {
+        File hologramFile = resolveHologramFile(crateId);
+        if (hologramFile.exists()) {
+            YamlConfiguration hCfg = YamlConfiguration.loadConfiguration(hologramFile);
+            return new ArrayList<>(hCfg.getStringList("lines"));
+        }
+
+        if (crateFile != null && crateFile.exists()) {
+            YamlConfiguration cCfg = YamlConfiguration.loadConfiguration(crateFile);
+            if (cCfg.contains("display.hologram-lines")) {
+                return new ArrayList<>(cCfg.getStringList("display.hologram-lines"));
+            }
+        }
+
+        return new ArrayList<>(getDefaultHologramLines());
+    }
+
+    private int getHologramMaxLines() {
+        return Math.max(1, plugin.getConfig().getInt("hologram.max-lines", 6));
+    }
+
+    private List<String> getDefaultHologramLines() {
+        List<String> defaults = plugin.getConfig().getStringList("hologram.default-lines");
+        if (defaults.isEmpty()) {
+            defaults = List.of("&e%crate_name%", "&7store: &fyour.store.com");
+        }
+        int maxLines = getHologramMaxLines();
+        if (defaults.size() <= maxLines) {
+            return defaults;
+        }
+        return new ArrayList<>(defaults.subList(0, maxLines));
+    }
+
+    private void sendHologramEditorChat(Player player, List<String> lines) {
+        if (lines.isEmpty()) {
+            player.sendMessage(Text.chat("&7Current lines: &cnone"));
+        } else {
+            for (int i = 0; i < lines.size(); i++) {
+                int lineIndex = i + 1;
+
+                net.md_5.bungee.api.chat.TextComponent line = new net.md_5.bungee.api.chat.TextComponent(
+                        Text.color("&7line " + lineIndex + ": &f" + lines.get(i)));
+                line.setClickEvent(new net.md_5.bungee.api.chat.ClickEvent(
+                        net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND,
+                        "/justcrates _editchat holo_edit " + lineIndex));
+                line.setHoverEvent(new net.md_5.bungee.api.chat.HoverEvent(
+                        net.md_5.bungee.api.chat.HoverEvent.Action.SHOW_TEXT,
+                        new net.md_5.bungee.api.chat.ComponentBuilder(Text.color("&aClick to edit this line")).create()));
+
+                net.md_5.bungee.api.chat.TextComponent spacer = new net.md_5.bungee.api.chat.TextComponent(" ");
+
+                net.md_5.bungee.api.chat.TextComponent remove = new net.md_5.bungee.api.chat.TextComponent(
+                        Text.color("&c[X]"));
+                remove.setClickEvent(new net.md_5.bungee.api.chat.ClickEvent(
+                        net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND,
+                        "/justcrates _editchat holo_remove " + lineIndex));
+                remove.setHoverEvent(new net.md_5.bungee.api.chat.HoverEvent(
+                        net.md_5.bungee.api.chat.HoverEvent.Action.SHOW_TEXT,
+                        new net.md_5.bungee.api.chat.ComponentBuilder(Text.color("&cRemove line " + lineIndex))
+                                .create()));
+
+                player.spigot().sendMessage(line, spacer, remove);
+            }
+        }
+
+        net.md_5.bungee.api.chat.TextComponent add = new net.md_5.bungee.api.chat.TextComponent(
+                Text.color("&a[+ Add line]"));
+        add.setClickEvent(new net.md_5.bungee.api.chat.ClickEvent(
+                net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND, "/justcrates _editchat holo_add"));
+        add.setHoverEvent(new net.md_5.bungee.api.chat.HoverEvent(
+                net.md_5.bungee.api.chat.HoverEvent.Action.SHOW_TEXT,
+                new net.md_5.bungee.api.chat.ComponentBuilder(Text.color("&aClick and then type line text")).create()));
+
+        net.md_5.bungee.api.chat.TextComponent spacer = new net.md_5.bungee.api.chat.TextComponent(" ");
+
+        net.md_5.bungee.api.chat.TextComponent done = new net.md_5.bungee.api.chat.TextComponent(Text.color("&7[Done]"));
+        done.setClickEvent(new net.md_5.bungee.api.chat.ClickEvent(
+                net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND, "/justcrates _editchat holo_done"));
+        done.setHoverEvent(new net.md_5.bungee.api.chat.HoverEvent(
+                net.md_5.bungee.api.chat.HoverEvent.Action.SHOW_TEXT,
+                new net.md_5.bungee.api.chat.ComponentBuilder(Text.color("&7Back to crate editor")).create()));
+
+        player.spigot().sendMessage(add, spacer, done);
     }
 
     private ItemStack actionItem(Material material, String name, String action, String... loreLines) {
@@ -904,10 +1662,21 @@ public final class EditorService {
 
     private ItemStack rewardIcon(RewardDefinition reward) {
         if (reward.getType() == RewardType.COMMAND) {
-            ItemStack stack = new ItemStack(Material.COMMAND_BLOCK);
+            Material material = Material.COMMAND_BLOCK;
+            if (reward.getPreviewMaterial() != null && !reward.getPreviewMaterial().isBlank()) {
+                try {
+                    material = Material.valueOf(reward.getPreviewMaterial().toUpperCase(Locale.ROOT));
+                } catch (IllegalArgumentException ignored) {
+                    material = Material.COMMAND_BLOCK;
+                }
+            }
+            ItemStack stack = new ItemStack(material);
             ItemMeta meta = stack.getItemMeta();
             if (meta != null) {
-                meta.setDisplayName(ui("&cCommand Reward"));
+                String name = reward.getPreviewName() == null || reward.getPreviewName().isBlank()
+                        ? "&cCommand Reward"
+                        : reward.getPreviewName();
+                meta.setDisplayName(ui(name));
                 stack.setItemMeta(meta);
             }
             return stack;
@@ -934,6 +1703,41 @@ public final class EditorService {
             return slot + 2;
         }
         return slot + 1;
+    }
+
+    private File resolveCrateFile(String crateId) {
+        if (crateId == null || crateId.isBlank()) {
+            return null;
+        }
+        String normalizedId = crateId.toLowerCase(Locale.ROOT);
+
+        File direct = new File(paths.getCratesFolder(), normalizedId + ".yml");
+        if (direct.exists()) {
+            return direct;
+        }
+
+        File[] files = paths.getCratesFolder().listFiles((dir, name) -> name.toLowerCase(Locale.ROOT).endsWith(".yml"));
+        if (files == null) {
+            return null;
+        }
+
+        for (File file : files) {
+            try {
+                YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+                String id = cfg.getString("id", file.getName().replace(".yml", "")).toLowerCase(Locale.ROOT);
+                if (normalizedId.equals(id)) {
+                    return file;
+                }
+            } catch (Exception ignored) {
+                // Skip malformed files and continue lookup.
+            }
+        }
+        return null;
+    }
+
+    private File resolveHologramFile(String crateId) {
+        String normalizedId = crateId == null ? "" : crateId.toLowerCase(Locale.ROOT);
+        return new File(paths.getHologramsFolder(), normalizedId + ".yml");
     }
 
     private String normalizeId(String input) {

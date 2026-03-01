@@ -62,6 +62,7 @@ public final class JustCrates extends JavaPlugin {
     @Override
     public void onDisable() {
         this.blockCrateService.save();
+        this.blockCrateService.shutdown();
         if (this.virtualKeyService != null) {
             this.virtualKeyService.save();
         }

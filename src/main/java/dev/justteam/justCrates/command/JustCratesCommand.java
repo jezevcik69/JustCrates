@@ -2,7 +2,6 @@ package dev.justteam.justCrates.command;
 
 import dev.justteam.justCrates.JustCrates;
 import dev.justteam.justCrates.core.Text;
-import dev.justteam.justCrates.gui.VirtualKeyGui;
 import dev.justteam.justCrates.key.KeyDefinition;
 import dev.justteam.justCrates.key.VirtualKeyService;
 import org.bukkit.Bukkit;
@@ -47,6 +46,22 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
 
         String sub = args[0].toLowerCase(Locale.ROOT);
         switch (sub) {
+            case "help" -> {
+                sendHelp(sender);
+                return true;
+            }
+            case "editor" -> {
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage(Text.chat("&cOnly players can use this command."));
+                    return true;
+                }
+                if (!sender.hasPermission("justcrates.admin")) {
+                    sender.sendMessage(Text.chat("&cNo permission."));
+                    return true;
+                }
+                plugin.getEditorService().openMainMenu(player);
+                return true;
+            }
             case "reload" -> {
                 if (!sender.hasPermission("justcrates.admin")) {
                     sender.sendMessage(Text.chat("&cNo permission."));
@@ -71,9 +86,6 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
                     return handleCrateKeyGiveCommand(sender, label, args.length > 2 ? slice(args, 2) : new String[0]);
                 }
                 return handleKeyCommand(sender, label, args.length > 1 ? slice(args, 1) : new String[0]);
-            }
-            case "vkey" -> {
-                return handleVirtualKeyCommand(sender, args.length > 1 ? slice(args, 1) : new String[0]);
             }
             default -> sendHelp(sender);
         }
@@ -110,6 +122,12 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(Text.chat("&cKey not found."));
             return true;
         }
+        if (key.isVirtual()) {
+            VirtualKeyService virtualKeyService = plugin.getVirtualKeyService();
+            virtualKeyService.addKeys(target.getUniqueId(), key.getId(), amount);
+            sender.sendMessage(Text.chat("&aGave virtual key."));
+            return true;
+        }
         ItemStack item = plugin.getKeyService().createKeyItem(key);
         if (item == null) {
             sender.sendMessage(Text.chat("&cFailed to build key item."));
@@ -118,42 +136,6 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
         item.setAmount(amount);
         target.getInventory().addItem(item);
         sender.sendMessage(Text.chat("&aGave key."));
-        return true;
-    }
-
-    private boolean handleVirtualKeyCommand(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage(Text.chat("&cOnly players can use this command."));
-            return true;
-        }
-
-        if (args.length == 0 || args[0].equalsIgnoreCase("gui")) {
-            VirtualKeyGui.open(plugin, player, plugin.getKeyService(), plugin.getVirtualKeyService());
-            return true;
-        }
-
-        String id = args[0].toLowerCase(Locale.ROOT);
-        int amount = 1;
-        if (args.length >= 2) {
-            try {
-                amount = Math.max(1, Integer.parseInt(args[1]));
-            } catch (NumberFormatException ignored) {
-            }
-        }
-
-        VirtualKeyService virtualKeyService = plugin.getVirtualKeyService();
-        if (plugin.getKeyService().getKey(id) == null) {
-            sender.sendMessage(Text.chat("&cKey not found."));
-            return true;
-        }
-
-        boolean converted = virtualKeyService.convertFromInventory(player, id, amount);
-        if (!converted) {
-            sender.sendMessage(Text.chat("&cYou do not have enough keys in inventory."));
-            return true;
-        }
-
-        sender.sendMessage(Text.chat("&aConverted " + amount + " key(s) to virtual."));
         return true;
     }
 
@@ -187,16 +169,22 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
         if (targetArg.equalsIgnoreCase("all")) {
             int given = 0;
             for (Player online : Bukkit.getOnlinePlayers()) {
-                ItemStack item = plugin.getKeyService().createKeyItem(key);
-                if (item == null) {
-                    continue;
+                if (key.isVirtual()) {
+                    plugin.getVirtualKeyService().addKeys(online.getUniqueId(), keyId, amount);
+                    given++;
+                } else {
+                    ItemStack item = plugin.getKeyService().createKeyItem(key);
+                    if (item == null) {
+                        continue;
+                    }
+                    item.setAmount(amount);
+                    online.getInventory().addItem(item);
+                    given++;
                 }
-                item.setAmount(amount);
-                online.getInventory().addItem(item);
-                given++;
             }
             sender.sendMessage(
-                    Text.chat("&aGiven &f" + amount + "x &akey &7(" + keyId + ") &ato &f" + given + " &aplayer(s)."));
+                    Text.chat("&aGiven &f" + amount + "x &a" + (key.isVirtual() ? "virtual key" : "key") + " &7(" + keyId
+                            + ") &ato &f" + given + " &aplayer(s)."));
             return true;
         }
 
@@ -206,6 +194,12 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        if (key.isVirtual()) {
+            plugin.getVirtualKeyService().addKeys(target.getUniqueId(), keyId, amount);
+            sender.sendMessage(
+                    Text.chat("&aGiven &f" + amount + "x &avirtual key &7(" + keyId + ") &ato &f" + target.getName() + "&a."));
+            return true;
+        }
         ItemStack item = plugin.getKeyService().createKeyItem(key);
         if (item == null) {
             sender.sendMessage(Text.chat("&cFailed to build key item."));
@@ -228,7 +222,7 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
 
     private List<String> completeJustCratesCommand(String[] args) {
         if (args.length == 1) {
-            return filterByPrefix(List.of("reload", "key", "vkey"), args[0]);
+            return filterByPrefix(List.of("help", "editor", "reload", "key"), args[0]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("key")) {
             return filterByPrefix(List.of("give"), args[1]);
@@ -247,17 +241,6 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
         }
         if (args.length == 5 && args[0].equalsIgnoreCase("key") && args[1].equalsIgnoreCase("give")) {
             return filterByPrefix(List.of("1", "3", "5", "10", "16", "32", "64"), args[4]);
-        }
-        if (args.length == 2 && args[0].equalsIgnoreCase("vkey")) {
-            List<String> suggestions = new ArrayList<>();
-            suggestions.add("gui");
-            for (KeyDefinition key : plugin.getKeyService().getKeys()) {
-                suggestions.add(key.getId());
-            }
-            return filterByPrefix(suggestions, args[1]);
-        }
-        if (args.length == 3 && args[0].equalsIgnoreCase("vkey")) {
-            return filterByPrefix(List.of("1", "3", "5", "10", "16", "32", "64"), args[2]);
         }
         return Collections.emptyList();
     }
@@ -306,9 +289,10 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(Text.chat("&#7EB7E5&lhelp menu"));
         sender.sendMessage(Text.chat("&7/crate"));
+        sender.sendMessage(Text.chat("&7/crate help"));
+        sender.sendMessage(Text.chat("&7/crate editor"));
         sender.sendMessage(Text.chat("&7/crate reload"));
         sender.sendMessage(Text.chat("&7/crate key give <player|all> <key-id> <amount>"));
-        sender.sendMessage(Text.chat("&7/crate vkey [gui|<id> [amount]]"));
         sender.sendMessage(Text.chat("&7/key <id> [player] [amount]"));
     }
 }

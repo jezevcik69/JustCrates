@@ -5,6 +5,7 @@ import dev.justteam.justCrates.core.Text;
 import dev.justteam.justCrates.gui.CratePreviewHolder;
 import dev.justteam.justCrates.gui.VirtualKeyGui;
 import dev.justteam.justCrates.gui.VirtualKeyMenuHolder;
+import dev.justteam.justCrates.gui.roll.RollInventoryHolder;
 import dev.justteam.justCrates.key.KeyDefinition;
 import dev.justteam.justCrates.key.KeyService;
 import dev.justteam.justCrates.key.VirtualKeyService;
@@ -12,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
@@ -29,6 +31,10 @@ public final class GuiListener implements Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         InventoryHolder holder = event.getInventory().getHolder();
         if (holder instanceof CratePreviewHolder) {
+            event.setCancelled(true);
+            return;
+        }
+        if (holder instanceof RollInventoryHolder) {
             event.setCancelled(true);
             return;
         }
@@ -83,5 +89,14 @@ public final class GuiListener implements Listener {
 
         player.sendMessage(Text.chat("&aKey converted to virtual key item."));
         VirtualKeyGui.open(plugin, player, keyService, virtualKeyService);
+    }
+
+    @EventHandler
+    public void onInventoryDrag(InventoryDragEvent event) {
+        InventoryHolder holder = event.getInventory().getHolder();
+        if (holder instanceof CratePreviewHolder || holder instanceof RollInventoryHolder
+                || holder instanceof VirtualKeyMenuHolder) {
+            event.setCancelled(true);
+        }
     }
 }

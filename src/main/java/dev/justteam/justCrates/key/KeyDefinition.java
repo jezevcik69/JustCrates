@@ -13,13 +13,16 @@ public final class KeyDefinition {
     private final List<String> lore;
     private final ItemDefinition itemDefinition;
     private final ItemStack itemStack;
+    private final boolean virtual;
 
-    public KeyDefinition(String id, String name, List<String> lore, ItemDefinition itemDefinition, ItemStack itemStack) {
+    public KeyDefinition(String id, String name, List<String> lore, ItemDefinition itemDefinition, ItemStack itemStack,
+            boolean virtual) {
         this.id = id;
         this.name = name;
         this.lore = lore;
         this.itemDefinition = itemDefinition;
         this.itemStack = itemStack;
+        this.virtual = virtual;
     }
 
     public String getId() {
@@ -40,6 +43,10 @@ public final class KeyDefinition {
 
     public ItemStack getItemStack() {
         return itemStack;
+    }
+
+    public boolean isVirtual() {
+        return virtual;
     }
 
     public String getColoredName() {

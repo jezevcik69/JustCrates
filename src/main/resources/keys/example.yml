@@ -1,4 +1,5 @@
-﻿id: "starter_key"
+id: "starter_key"
+virtual: false
 display:
   name: "&eStarter Key"
   lore:

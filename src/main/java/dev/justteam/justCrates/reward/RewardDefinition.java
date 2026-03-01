@@ -12,13 +12,20 @@ public final class RewardDefinition {
     private final List<String> commands;
     private final ItemDefinition itemDefinition;
     private final ItemStack itemStack;
+    private final String previewMaterial;
+    private final String previewName;
+    private final List<String> previewLore;
 
-    public RewardDefinition(RewardType type, int weight, List<String> commands, ItemDefinition itemDefinition, ItemStack itemStack) {
+    public RewardDefinition(RewardType type, int weight, List<String> commands, ItemDefinition itemDefinition,
+            ItemStack itemStack, String previewMaterial, String previewName, List<String> previewLore) {
         this.type = type;
         this.weight = weight;
         this.commands = commands;
         this.itemDefinition = itemDefinition;
         this.itemStack = itemStack;
+        this.previewMaterial = previewMaterial;
+        this.previewName = previewName;
+        this.previewLore = previewLore;
     }
 
     public RewardType getType() {
@@ -39,5 +46,17 @@ public final class RewardDefinition {
 
     public ItemStack getItemStack() {
         return itemStack;
+    }
+
+    public String getPreviewMaterial() {
+        return previewMaterial;
+    }
+
+    public String getPreviewName() {
+        return previewName;
+    }
+
+    public List<String> getPreviewLore() {
+        return previewLore;
     }
 }

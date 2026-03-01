@@ -28,7 +28,7 @@ public final class InstantRollGui {
             return;
         }
 
-        Inventory inv = Bukkit.createInventory(null, 27, Text.color(crate.getRollDefinition().getTitle()));
+        Inventory inv = Bukkit.createInventory(new RollInventoryHolder(), 27, Text.color(crate.getRollDefinition().getTitle()));
 
         // Fill with gradient border
         ItemStack dark = pane(Material.BLUE_STAINED_GLASS_PANE);
