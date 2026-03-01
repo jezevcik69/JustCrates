@@ -15,9 +15,6 @@ import dev.justteam.justCrates.provider.ProviderRegistry;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class JustCrates extends JavaPlugin {
-
-    private PluginPaths paths;
-    private ProviderRegistry providerRegistry;
     private KeyService keyService;
     private VirtualKeyService virtualKeyService;
     private CrateService crateService;
@@ -26,14 +23,12 @@ public final class JustCrates extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        printStartupBanner();
-
-        this.paths = new PluginPaths(this);
-        this.paths.ensure();
+        PluginPaths paths = new PluginPaths(this);
+        paths.ensure();
         reloadConfig();
 
-        this.providerRegistry = new ProviderRegistry(this);
-        this.providerRegistry.detect();
+        ProviderRegistry providerRegistry = new ProviderRegistry(this);
+        providerRegistry.detect();
 
         this.keyService = new KeyService(this, providerRegistry, paths);
         this.virtualKeyService = new VirtualKeyService(this, paths, keyService);
@@ -68,14 +63,6 @@ public final class JustCrates extends JavaPlugin {
         }
     }
 
-    public PluginPaths getPaths() {
-        return paths;
-    }
-
-    public ProviderRegistry getProviderRegistry() {
-        return providerRegistry;
-    }
-
     public KeyService getKeyService() {
         return keyService;
     }
@@ -95,17 +82,4 @@ public final class JustCrates extends JavaPlugin {
     public EditorService getEditorService() {
         return editorService;
     }
-
-    private void printStartupBanner() {
-        getLogger().info(" ");
-        getLogger().info("     ____.               __   _________                __                 ");
-        getLogger().info("    |    |__ __  _______/  |_ \\_   ___ \\____________ _/  |_  ____   ______");
-        getLogger().info("    |    |  |  \\/  ___/\\   __\\/    \\  \\/\\_  __ \\__  \\\\   __\\/ __ \\ /  ___/");
-        getLogger().info("/\\__|    |  |  /\\___ \\  |  |  \\     \\____|  | \\// __ \\|  | \\  ___/ \\___ \\ ");
-        getLogger().info("\\________|____//____  > |__|   \\______  /|__|  (____  /__|  \\___  >____  >");
-        getLogger().info("                    \\/                \\/            \\/          \\/     \\/ ");
-        getLogger().info("                              Loading JustCrates...                         ");
-        getLogger().info(" ");
-    }
 }
-
