@@ -12,7 +12,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.List;
 
 public final class ItemFactory {
-
     private final JavaPlugin plugin;
     private final ProviderRegistry providerRegistry;
     private final NamespacedKey keyIdTag;
@@ -117,4 +116,3 @@ public final class ItemFactory {
         return val != null && val == 1;
     }
 }
-

@@ -19,4 +19,3 @@ public final class ItemsAdderProvider implements ItemProvider {
         return null;
     }
 }
-

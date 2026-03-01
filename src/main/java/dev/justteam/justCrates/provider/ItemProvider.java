@@ -8,4 +8,3 @@ public interface ItemProvider {
     boolean isAvailable();
     ItemStack createItem(ItemDefinition definition);
 }
-

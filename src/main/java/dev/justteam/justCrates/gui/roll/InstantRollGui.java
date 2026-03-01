@@ -14,11 +14,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
-
 public final class InstantRollGui {
-
-    private InstantRollGui() {
-    }
+    private InstantRollGui() {}
 
     public static void open(JavaPlugin plugin, Player player, CrateDefinition crate, CrateService crateService) {
         RewardDefinition reward = crateService.rollReward(crate);
@@ -78,4 +75,3 @@ public final class InstantRollGui {
         }
     }
 }
-

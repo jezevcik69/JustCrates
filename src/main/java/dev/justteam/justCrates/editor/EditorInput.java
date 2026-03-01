@@ -1,7 +1,6 @@
 package dev.justteam.justCrates.editor;
 
 public final class EditorInput {
-
     private final EditorInputType type;
     private final String crateId;
     private final Integer rewardIndex;
@@ -24,4 +23,3 @@ public final class EditorInput {
         return rewardIndex;
     }
 }
-

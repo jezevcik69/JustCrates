@@ -4,7 +4,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
 public final class EditorMenuHolder implements InventoryHolder {
-
     private final EditorMenuType type;
     private final String crateId;
 
@@ -26,4 +25,3 @@ public final class EditorMenuHolder implements InventoryHolder {
         return null;
     }
 }
-

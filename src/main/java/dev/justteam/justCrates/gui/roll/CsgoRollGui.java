@@ -18,11 +18,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
 
-
 public final class CsgoRollGui {
-
-    private CsgoRollGui() {
-    }
+    private CsgoRollGui() {}
 
     public static void open(JavaPlugin plugin, Player player, CrateDefinition crate, CrateService crateService) {
         RollDefinition roll = crate.getRollDefinition();
@@ -36,13 +33,13 @@ public final class CsgoRollGui {
             inv.setItem(i, dark);
         }
         inv.setItem(0, corner);
-        inv.setItem(4, accent); // marker above center
+        inv.setItem(4, accent);
         inv.setItem(8, corner);
         for (int i = 18; i < 27; i++) {
             inv.setItem(i, dark);
         }
         inv.setItem(18, corner);
-        inv.setItem(22, accent); // marker below center
+        inv.setItem(22, accent);
         inv.setItem(26, corner);
         for (int i = 9; i < 18; i++) {
             inv.setItem(i, pane(Material.BLACK_STAINED_GLASS_PANE));
@@ -145,4 +142,3 @@ public final class CsgoRollGui {
         }
     }
 }
-

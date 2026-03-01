@@ -6,7 +6,6 @@ import org.bukkit.inventory.ItemStack;
 import java.util.List;
 
 public final class RewardDefinition {
-
     private final RewardType type;
     private final int weight;
     private final List<String> commands;
@@ -16,8 +15,7 @@ public final class RewardDefinition {
     private final String previewName;
     private final List<String> previewLore;
 
-    public RewardDefinition(RewardType type, int weight, List<String> commands, ItemDefinition itemDefinition,
-            ItemStack itemStack, String previewMaterial, String previewName, List<String> previewLore) {
+    public RewardDefinition(RewardType type, int weight, List<String> commands, ItemDefinition itemDefinition, ItemStack itemStack, String previewMaterial, String previewName, List<String> previewLore) {
         this.type = type;
         this.weight = weight;
         this.commands = commands;
@@ -60,4 +58,3 @@ public final class RewardDefinition {
         return previewLore;
     }
 }
-

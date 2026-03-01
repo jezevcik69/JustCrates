@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.util.*;
 
 public final class CrateService {
-
     private final JavaPlugin plugin;
     private final ProviderRegistry providerRegistry;
     private final PluginPaths paths;
@@ -36,8 +35,7 @@ public final class CrateService {
     private final ItemFactory itemFactory;
     private final Random random;
 
-    public CrateService(JavaPlugin plugin, ProviderRegistry providerRegistry, PluginPaths paths, KeyService keyService,
-            VirtualKeyService virtualKeyService) {
+    public CrateService(JavaPlugin plugin, ProviderRegistry providerRegistry, PluginPaths paths, KeyService keyService, VirtualKeyService virtualKeyService) {
         this.plugin = plugin;
         this.providerRegistry = providerRegistry;
         this.paths = paths;
@@ -324,4 +322,3 @@ public final class CrateService {
         }
     }
 }
-

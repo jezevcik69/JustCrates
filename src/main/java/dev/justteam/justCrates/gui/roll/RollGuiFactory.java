@@ -7,9 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class RollGuiFactory {
-
-    private RollGuiFactory() {
-    }
+    private RollGuiFactory() {}
 
     public static void open(JavaPlugin plugin, Player player, CrateDefinition crate, CrateService crateService) {
         RollType type = crate.getRollDefinition().getRollType();
@@ -20,4 +18,3 @@ public final class RollGuiFactory {
         }
     }
 }
-

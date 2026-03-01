@@ -10,4 +10,3 @@ public enum EditorMenuType {
     KEY_SELECT,
     ROLL_TYPE_SELECT
 }
-

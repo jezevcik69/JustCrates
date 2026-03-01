@@ -5,4 +5,3 @@ public enum RollType {
     ROULETTE,
     INSTANT
 }
-

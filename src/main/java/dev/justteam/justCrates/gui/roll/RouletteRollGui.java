@@ -18,7 +18,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
 
-
 public final class RouletteRollGui {
     private static final int[] PERIMETER = {
         0, 1, 2, 3, 4, 5, 6, 7, 8,
@@ -28,8 +27,7 @@ public final class RouletteRollGui {
     };
     private static final int MARKER_INDEX = 4;
 
-    private RouletteRollGui() {
-    }
+    private RouletteRollGui() {}
 
     public static void open(JavaPlugin plugin, Player player, CrateDefinition crate, CrateService crateService) {
         RollDefinition roll = crate.getRollDefinition();
@@ -42,7 +40,7 @@ public final class RouletteRollGui {
         }
         inv.setItem(22, pane(Material.CYAN_STAINED_GLASS_PANE));
         ItemStack marker = pane(Material.YELLOW_STAINED_GLASS_PANE);
-        inv.setItem(13, marker); // below marker slot
+        inv.setItem(13, marker);
 
         player.openInventory(inv);
 
@@ -93,7 +91,7 @@ public final class RouletteRollGui {
                         ItemStack display = RewardPreview.create(finalReward);
                         if (display != null) {
                             inv.setItem(PERIMETER[MARKER_INDEX], display);
-                            inv.setItem(22, display); // also show in center
+                            inv.setItem(22, display);
                         }
                         crateService.giveReward(player, finalReward);
                     }
@@ -143,4 +141,3 @@ public final class RouletteRollGui {
         }
     }
 }
-

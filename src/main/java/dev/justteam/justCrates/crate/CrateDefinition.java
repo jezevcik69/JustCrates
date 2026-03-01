@@ -5,7 +5,6 @@ import dev.justteam.justCrates.reward.RewardDefinition;
 import java.util.List;
 
 public final class CrateDefinition {
-
     private final String id;
     private final CrateType type;
     private final String name;
@@ -16,8 +15,7 @@ public final class CrateDefinition {
     private final String particle;
     private final List<String> hologramLines;
 
-    public CrateDefinition(String id, CrateType type, String name, List<String> lore, String keyId,
-            RollDefinition rollDefinition, List<RewardDefinition> rewards, String particle, List<String> hologramLines) {
+    public CrateDefinition(String id, CrateType type, String name, List<String> lore, String keyId, RollDefinition rollDefinition, List<RewardDefinition> rewards, String particle, List<String> hologramLines) {
         this.id = id;
         this.type = type;
         this.name = name;
@@ -41,10 +39,6 @@ public final class CrateDefinition {
         return name;
     }
 
-    public List<String> getLore() {
-        return lore;
-    }
-
     public String getKeyId() {
         return keyId;
     }
@@ -65,4 +59,3 @@ public final class CrateDefinition {
         return hologramLines;
     }
 }
-

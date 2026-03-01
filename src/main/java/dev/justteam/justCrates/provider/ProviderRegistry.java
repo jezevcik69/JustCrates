@@ -9,7 +9,6 @@ import java.util.Locale;
 import java.util.Map;
 
 public final class ProviderRegistry {
-
     private final JavaPlugin plugin;
     private final Map<String, ItemProvider> providers = new HashMap<>();
 
@@ -51,4 +50,3 @@ public final class ProviderRegistry {
         return providers.get(id.toLowerCase(Locale.ROOT));
     }
 }
-

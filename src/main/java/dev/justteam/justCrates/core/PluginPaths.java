@@ -5,7 +5,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 
 public final class PluginPaths {
-
     private final JavaPlugin plugin;
     private final File dataFolder;
     private final File cratesFolder;
@@ -77,4 +76,3 @@ public final class PluginPaths {
         return blocksFile;
     }
 }
-

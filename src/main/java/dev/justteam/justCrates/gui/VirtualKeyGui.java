@@ -18,11 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class VirtualKeyGui {
-
     private static final String TITLE = "&8Virtual Keys \u2022 Converter";
 
-    private VirtualKeyGui() {
-    }
+    private VirtualKeyGui() {}
 
     public static void open(JavaPlugin plugin, Player player, KeyService keyService, VirtualKeyService virtualKeyService) {
         List<KeyDefinition> keys = keyService.getKeys();
@@ -89,4 +87,3 @@ public final class VirtualKeyGui {
         }
     }
 }
-

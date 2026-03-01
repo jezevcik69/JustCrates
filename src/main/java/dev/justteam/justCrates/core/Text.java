@@ -8,13 +8,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class Text {
-
     private static final Pattern HEX_PATTERN = Pattern.compile("&#([A-Fa-f0-9]{6})");
     private static final String PREFIX = "&#4498DB&lᴊ&#52A0DD&lᴜ&#61A8E0&lꜱ&#6FAFE2&lᴛ&#7EB7E5&lᴄ&#8CBFE7&lʀ&#9BC7EA&lᴀ&#A9CEEC&lᴛ&#B8D6EF&lᴇ&#C6DEF1&lꜱ";
     private static final Map<Character, String> SMALL_CAPS = createSmallCapsMap();
 
-    private Text() {
-    }
+    private Text() {}
 
     public static String color(String input) {
         if (input == null) {
@@ -116,4 +114,3 @@ public final class Text {
         return map;
     }
 }
-

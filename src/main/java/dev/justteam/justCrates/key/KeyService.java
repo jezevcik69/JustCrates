@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Locale;
 
 public final class KeyService {
-
     private final JavaPlugin plugin;
     private final ProviderRegistry providerRegistry;
     private final PluginPaths paths;
@@ -238,4 +237,3 @@ public final class KeyService {
         }
     }
 }
-
