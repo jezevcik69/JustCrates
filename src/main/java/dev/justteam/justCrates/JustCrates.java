@@ -106,7 +106,11 @@ public final class JustCrates extends JavaPlugin {
     }
 
     public void reloadRuntimeAssets() {
-        Text.setPrefix(getConfig().getString("settings.prefix"));
+        String configuredPrefix = getConfig().getString("prefix");
+        if (configuredPrefix == null || configuredPrefix.isBlank()) {
+            configuredPrefix = getConfig().getString("settings.prefix");
+        }
+        Text.setPrefix(configuredPrefix);
         Messages.load(pluginPaths.getMessagesFile());
         if (previewGuiSettings != null) {
             previewGuiSettings.reload();
