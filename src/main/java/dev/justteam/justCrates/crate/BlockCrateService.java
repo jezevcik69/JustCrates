@@ -21,6 +21,7 @@ public final class BlockCrateService {
     private final PluginPaths paths;
     private final Map<String, String> bindings = new HashMap<>();
     private final Map<String, List<UUID>> hologramEntities = new HashMap<>();
+    private final Set<String> suppressedHolograms = new HashSet<>();
     private final CrateService crateService;
     private BukkitTask particleTask;
     private BukkitTask hologramTask;
@@ -122,11 +123,13 @@ public final class BlockCrateService {
 
     public void hideHologram(Location location) {
         String key = serialize(location);
+        suppressedHolograms.add(key);
         removeHologram(key);
     }
 
     public void showHologram(Location location) {
         String key = serialize(location);
+        suppressedHolograms.remove(key);
         if (bindings.containsKey(key)) {
             refreshHologram(key);
         }
@@ -213,6 +216,9 @@ public final class BlockCrateService {
     }
 
     private void refreshHologram(String key) {
+        if (suppressedHolograms.contains(key)) {
+            return;
+        }
         Location loc = deserialize(key);
         if (loc == null || loc.getWorld() == null) {
             removeHologram(key);

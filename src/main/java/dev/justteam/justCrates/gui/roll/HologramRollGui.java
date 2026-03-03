@@ -149,7 +149,7 @@ public final class HologramRollGui {
                     // Remove stands and restore hologram after 3 seconds
                     Bukkit.getScheduler().runTaskLater(plugin, () -> {
                         cleanup();
-                    }, 60L);
+                    }, 40L);
                 }
             }
 
