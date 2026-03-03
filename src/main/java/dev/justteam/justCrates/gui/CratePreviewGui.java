@@ -1,7 +1,7 @@
 package dev.justteam.justCrates.gui;
 
-import dev.justteam.justCrates.core.Text;
 import dev.justteam.justCrates.core.PreviewGuiSettings;
+import dev.justteam.justCrates.core.Text;
 import dev.justteam.justCrates.crate.CrateDefinition;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
