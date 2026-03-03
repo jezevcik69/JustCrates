@@ -35,7 +35,6 @@ public final class EditorListener implements Listener {
             return;
         }
 
-        // Check if player is in key icon mode and clicked their own inventory
         if (editorService.isInKeyIconMode(player) && event.getRawSlot() >= inv.getSize()) {
             event.setCancelled(true);
             ItemStack clicked = event.getCurrentItem();
@@ -45,7 +44,6 @@ public final class EditorListener implements Listener {
             return;
         }
 
-        // Check if player is in reward item mode and clicked their own inventory
         if (editorService.isInRewardItemMode(player) && event.getRawSlot() >= inv.getSize()) {
             event.setCancelled(true);
             ItemStack clicked = event.getCurrentItem();

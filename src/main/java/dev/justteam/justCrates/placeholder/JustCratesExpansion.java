@@ -42,7 +42,6 @@ public final class JustCratesExpansion extends PlaceholderExpansion {
 
     @Override
     public @Nullable String onRequest(OfflinePlayer player, @NotNull String params) {
-        // %justcrates_keys_<keyId>%
         if (params.startsWith("keys_") && player != null) {
             String keyId = params.substring(5);
             if (virtualKeyService != null) {
@@ -51,7 +50,6 @@ public final class JustCratesExpansion extends PlaceholderExpansion {
             return "0";
         }
 
-        // %justcrates_crate_name_<crateId>%
         if (params.startsWith("crate_name_")) {
             String crateId = params.substring(11);
             CrateDefinition crate = crateService.getCrate(crateId);

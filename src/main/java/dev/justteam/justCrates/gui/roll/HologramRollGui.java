@@ -5,28 +5,26 @@ import dev.justteam.justCrates.crate.BlockCrateService;
 import dev.justteam.justCrates.crate.CrateDefinition;
 import dev.justteam.justCrates.crate.CrateService;
 import dev.justteam.justCrates.crate.RollDefinition;
-import dev.justteam.justCrates.gui.RewardPreview;
 import dev.justteam.justCrates.reward.RewardDefinition;
 import dev.justteam.justCrates.reward.RewardType;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public final class HologramRollGui {
     private HologramRollGui() {}
 
     public static void open(JavaPlugin plugin, Player player, CrateDefinition crate, CrateService crateService, Block block, BlockCrateService blockCrateService) {
         if (block == null) {
-            // Fallback to CSGO if no block
             CsgoRollGui.open(plugin, player, crate, crateService);
             return;
         }
@@ -48,12 +46,10 @@ public final class HologramRollGui {
 
         Location blockLoc = block.getLocation();
 
-        // Remove existing hologram
         if (blockCrateService != null) {
             blockCrateService.hideHologram(blockLoc);
         }
 
-        // Spawn two armor stands: one for item display name, one for reward name
         Location iconLoc = new Location(blockLoc.getWorld(), blockLoc.getX() + 0.5, blockLoc.getY() + 2.0, blockLoc.getZ() + 0.5);
         Location nameLoc = new Location(blockLoc.getWorld(), blockLoc.getX() + 0.5, blockLoc.getY() + 1.7, blockLoc.getZ() + 0.5);
 
@@ -81,7 +77,6 @@ public final class HologramRollGui {
             stand.setCustomName(" ");
         });
 
-        // Build preview names
         List<String> rewardNames = new ArrayList<>();
         List<String> rewardIcons = new ArrayList<>();
         for (RewardDefinition reward : rewards) {
@@ -116,7 +111,6 @@ public final class HologramRollGui {
                     nameStand.setCustomName(Text.color(rewardNames.get(idx)));
                     offset++;
 
-                    // Play tick sound
                     String soundName = plugin.getConfig().getString("sounds.roll", "ui.button.click");
                     Sound sound = parseSound(soundName);
                     if (sound != null) {
@@ -130,7 +124,6 @@ public final class HologramRollGui {
                 }
 
                 if (elapsed >= totalTicks) {
-                    // Show final reward
                     String finalName = resolveRewardName(finalReward);
                     String finalIcon = resolveRewardIcon(finalReward);
                     iconStand.setCustomName(Text.color(finalIcon));
@@ -146,7 +139,6 @@ public final class HologramRollGui {
 
                     cancel();
 
-                    // Remove stands and restore hologram after 3 seconds
                     Bukkit.getScheduler().runTaskLater(plugin, () -> {
                         cleanup();
                     }, 40L);
@@ -156,7 +148,6 @@ public final class HologramRollGui {
             private void cleanup() {
                 if (!iconStand.isDead()) iconStand.remove();
                 if (!nameStand.isDead()) nameStand.remove();
-                // Restore hologram
                 if (blockCrateService != null) {
                     blockCrateService.showHologram(blockLoc);
                 }
@@ -204,7 +195,6 @@ public final class HologramRollGui {
         if (mat == null) {
             mat = Material.CHEST;
         }
-        // Use colored block name as "icon" representation
         return "&e\u2B50 &6" + formatMaterial(mat.name()) + " &e\u2B50";
     }
 

@@ -157,7 +157,6 @@ public final class CrateService {
             return;
         }
 
-        // Empty rewards check
         if (crate.getRewards().isEmpty()) {
             player.sendMessage(Text.chat("&cThis crate has no rewards set up."));
             if (block != null) {
@@ -166,7 +165,6 @@ public final class CrateService {
             return;
         }
 
-        // Permission check
         if (crate.getPermission() != null && !crate.getPermission().isBlank()) {
             if (!player.hasPermission(crate.getPermission())) {
                 player.sendMessage(Text.chat("&cYou don't have permission to open this crate."));
@@ -174,7 +172,6 @@ public final class CrateService {
             }
         }
 
-        // Cooldown check
         if (crate.getCooldown() > 0) {
             Map<String, Long> playerCooldowns = cooldowns.computeIfAbsent(player.getUniqueId(), k -> new HashMap<>());
             Long lastUse = playerCooldowns.get(crate.getId());
@@ -188,7 +185,6 @@ public final class CrateService {
             }
         }
 
-        // Key check - if key is set, player must have it
         boolean needsKey = crate.getKeyId() != null && !crate.getKeyId().isEmpty();
         plugin.getLogger().info("[DEBUG] Crate " + crate.getId() + " keyId='" + crate.getKeyId() + "' needsKey=" + needsKey);
         if (needsKey) {
@@ -233,7 +229,6 @@ public final class CrateService {
             }
         }
 
-        // Set cooldown
         if (crate.getCooldown() > 0) {
             cooldowns.computeIfAbsent(player.getUniqueId(), k -> new HashMap<>())
                     .put(crate.getId(), System.currentTimeMillis());

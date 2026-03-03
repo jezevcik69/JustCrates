@@ -22,7 +22,6 @@ public final class NoGambleInventoryHolder implements InventoryHolder {
             return;
         }
         int size = crate.getRewards().size();
-        // Rewards are placed starting at slot 10, skipping border slots
         int rewardIndex = slotToRewardIndex(rawSlot, size);
         if (rewardIndex < 0 || rewardIndex >= size) {
             return;
@@ -34,8 +33,6 @@ public final class NoGambleInventoryHolder implements InventoryHolder {
     }
 
     private int slotToRewardIndex(int slot, int totalRewards) {
-        // Map GUI slot back to reward index
-        // Rewards placed at inner slots (not border)
         int index = 0;
         int rows = Math.max(3, (int) Math.ceil((totalRewards + 7.0) / 7.0) + 2);
         int invSize = rows * 9;

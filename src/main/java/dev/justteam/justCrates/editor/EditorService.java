@@ -83,14 +83,6 @@ public final class EditorService {
         return keyIconMode.containsKey(player.getUniqueId());
     }
 
-    public String getKeyIconModeKeyId(Player player) {
-        return keyIconMode.get(player.getUniqueId());
-    }
-
-    public void clearKeyIconMode(Player player) {
-        keyIconMode.remove(player.getUniqueId());
-    }
-
     public boolean isInRewardItemMode(Player player) {
         return rewardItemMode.containsKey(player.getUniqueId());
     }
@@ -298,7 +290,6 @@ public final class EditorService {
         inv.setItem(20, actionItem(Material.BARRIER, "&cUnbind Block", "unbind_block",
                 "&7Click a block", "&7to unbind"));
 
-        // Select Key - show current key name in lore
         String currentKeyName = "&cNone";
         if (crate.getKeyId() != null && !crate.getKeyId().isBlank()) {
             KeyDefinition currentKey = keyService.getKey(crate.getKeyId());
@@ -334,19 +325,16 @@ public final class EditorService {
                     "&eClick to confirm in chat"));
         }
 
-        // Unbind key from crate
         if (crate.getKeyId() != null && !crate.getKeyId().isBlank()) {
             inv.setItem(24, actionItem(Material.SHEARS, "&cUnbind Key", "unbind_key",
                     "&7Remove key requirement",
                     "&7from this crate"));
         }
 
-        // Cooldown
         inv.setItem(33, actionItem(Material.CLOCK, "&eCooldown", "set_cooldown",
                 "&7Current: &f" + (crate.getCooldown() > 0 ? crate.getCooldown() + "s" : "None"),
                 "&7Set open cooldown in seconds"));
 
-        // Permission
         inv.setItem(34, actionItem(Material.IRON_BARS, "&6Permission", "set_permission",
                 "&7Current: &f"
                         + (crate.getPermission() == null || crate.getPermission().isBlank() ? "None" : crate.getPermission()),
@@ -770,11 +758,8 @@ public final class EditorService {
             startDeleteKey(player, keyId);
             return;
         }
-        // If player clicks item in their inventory while in key icon mode
         if (rawSlot >= 27) {
-            // Player inventory click
             if (keyIconMode.containsKey(player.getUniqueId())) {
-                // This is handled in EditorListener
                 return;
             }
         }
@@ -1251,7 +1236,6 @@ public final class EditorService {
             return;
         }
 
-        // Unlink from any crates using this key
         for (CrateDefinition crate : crateService.getCrates()) {
             if (keyId.equalsIgnoreCase(crate.getKeyId())) {
                 setCrateKey(crate.getId(), "");
@@ -1689,7 +1673,6 @@ public final class EditorService {
             updated.add(map);
         }
 
-        // Serialize itemstack using temp config
         YamlConfiguration temp = new YamlConfiguration();
         temp.set("itemstack", item);
         Object serialized = temp.get("itemstack");
