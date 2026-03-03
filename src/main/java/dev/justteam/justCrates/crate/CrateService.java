@@ -187,7 +187,6 @@ public final class CrateService {
         }
 
         boolean needsKey = crate.getKeyId() != null && !crate.getKeyId().isEmpty();
-        plugin.getLogger().info("[DEBUG] Crate " + crate.getId() + " keyId='" + crate.getKeyId() + "' needsKey=" + needsKey);
         if (needsKey) {
             boolean consumed = false;
             ItemStack hand = player.getInventory().getItemInMainHand();

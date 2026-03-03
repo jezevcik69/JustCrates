@@ -1,19 +1,9 @@
 # =======================
 # JustCrates Configuration
 # =======================
-# Main plugin settings and defaults.
+# Prefix used for all plugin messages.
 # =======================
-
-# =======================
-# General Settings
-# =======================
-
-  # Enables additional debug output in console
-  debug: false
-
-  # Chat prefix shown before all plugin messages
-  # Supports color codes (&c, &a, etc.) and hex colors (&#RRGGBB)
-  prefix: "&#4498DB&lᴊ&#52A0DD&lᴜ&#61A8E0&lꜱ&#6FAFE2&lᴛ&#7EB7E5&lᴄ&#8CBFE7&lʀ&#9BC7EA&lᴀ&#A9CEEC&lᴛ&#B8D6EF&lᴇ&#C6DEF1&lꜱ"
+prefix: "&#4498DB&lᴊ&#52A0DD&lᴜ&#61A8E0&lꜱ&#6FAFE2&lᴛ&#7EB7E5&lᴄ&#8CBFE7&lʀ&#9BC7EA&lᴀ&#A9CEEC&lᴛ&#B8D6EF&lᴇ&#C6DEF1&lꜱ"
 
 # =======================
 # GUI Settings
