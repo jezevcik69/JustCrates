@@ -1,6 +1,6 @@
 package dev.justteam.justCrates.editor;
 
-import dev.justteam.justCrates.core.Text;
+import dev.justteam.justCrates.core.Messages;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -112,7 +112,7 @@ public final class EditorListener implements Listener {
             editorService.clearUnbindMode(player);
             editorService.getBlockCrateService().unbind(block.getLocation());
             editorService.getBlockCrateService().save();
-            player.sendMessage(Text.chat("&aCrate block unbound."));
+            player.sendMessage(Messages.get("block-unbound"));
             return;
         }
 
@@ -134,7 +134,7 @@ public final class EditorListener implements Listener {
         }
         editorService.getBlockCrateService().bind(block.getLocation(), crateId);
         editorService.getBlockCrateService().save();
-        player.sendMessage(Text.chat("&aBlock bound to crate: " + crateId));
+        player.sendMessage(Messages.get("block-bound", "%crate%", crateId));
         editorService.openCrateEditor(player, crateId);
     }
 }

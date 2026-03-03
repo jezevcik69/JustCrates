@@ -1,6 +1,7 @@
 package dev.justteam.justCrates.gui;
 
 import dev.justteam.justCrates.core.Text;
+import dev.justteam.justCrates.core.PreviewGuiSettings;
 import dev.justteam.justCrates.crate.CrateDefinition;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -14,24 +15,21 @@ import java.util.List;
 public final class CratePreviewGui {
     private CratePreviewGui() {}
 
-    public static void open(Player player, CrateDefinition crate) {
+    public static void open(Player player, CrateDefinition crate, PreviewGuiSettings settings) {
         List<ItemStack> rewards = RewardPreview.buildPreview(crate);
-        int size = 54;
+        int size = settings.getSize();
+        String title = settings.getTitle()
+                .replace("%crate%", crate.getName())
+                .replace("%crate_id%", crate.getId());
 
         CratePreviewHolder holder = new CratePreviewHolder(crate.getId());
-        Inventory inv = Bukkit.createInventory(holder, size, Text.color("&8Preview \u2022 " + crate.getName()));
+        Inventory inv = Bukkit.createInventory(holder, size, Text.color(Text.toSmallCaps(title)));
         holder.setInventory(inv);
 
-        fillGradientBorder(inv);
+        fillGradientBorder(inv, settings);
 
         int index = 0;
-        int[] contentSlots = {
-            10, 11, 12, 13, 14, 15, 16,
-            19, 20, 21, 22, 23, 24, 25,
-            28, 29, 30, 31, 32, 33, 34,
-            37, 38, 39, 40, 41, 42, 43
-        };
-        for (int slot : contentSlots) {
+        for (int slot : settings.getContentSlots()) {
             if (index >= rewards.size()) {
                 break;
             }
@@ -41,40 +39,31 @@ public final class CratePreviewGui {
         player.openInventory(inv);
     }
 
-    private static void fillGradientBorder(Inventory inv) {
-        ItemStack dark = pane(Material.BLUE_STAINED_GLASS_PANE);
-        ItemStack accent = pane(Material.LIGHT_BLUE_STAINED_GLASS_PANE);
-        ItemStack corner = pane(Material.CYAN_STAINED_GLASS_PANE);
+    private static void fillGradientBorder(Inventory inv, PreviewGuiSettings settings) {
+        ItemStack dark = pane(settings.getDarkMaterial(), settings.getPaneName());
+        ItemStack accent = pane(settings.getAccentMaterial(), settings.getPaneName());
+        ItemStack corner = pane(settings.getCornerMaterial(), settings.getPaneName());
 
-        for (int i = 0; i < 54; i++) {
+        for (int i = 0; i < inv.getSize(); i++) {
             inv.setItem(i, dark);
         }
-        int[] corners = {0, 8, 45, 53};
-        for (int c : corners) {
-            inv.setItem(c, corner);
+        for (int slot : settings.getCornerSlots()) {
+            inv.setItem(slot, corner);
         }
-        for (int row = 1; row < 5; row++) {
-            inv.setItem(row * 9, accent);
-            inv.setItem(row * 9 + 8, accent);
+        for (int slot : settings.getAccentSlots()) {
+            inv.setItem(slot, accent);
         }
-        int[] contentSlots = {
-            10, 11, 12, 13, 14, 15, 16,
-            19, 20, 21, 22, 23, 24, 25,
-            28, 29, 30, 31, 32, 33, 34,
-            37, 38, 39, 40, 41, 42, 43
-        };
-        for (int slot : contentSlots) {
+        for (int slot : settings.getContentSlots()) {
             inv.setItem(slot, null);
         }
-        inv.setItem(3, accent);
-        inv.setItem(5, accent);
     }
 
-    private static ItemStack pane(Material material) {
+    private static ItemStack pane(Material material, String paneName) {
         ItemStack stack = new ItemStack(material);
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(" ");
+            String name = paneName == null || paneName.isBlank() ? " " : paneName;
+            meta.setDisplayName(Text.color(name));
             stack.setItemMeta(meta);
         }
         return stack;

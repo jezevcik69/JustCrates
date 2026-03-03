@@ -9,7 +9,9 @@ import java.util.regex.Pattern;
 
 public final class Text {
     private static final Pattern HEX_PATTERN = Pattern.compile("&#([A-Fa-f0-9]{6})");
-    private static final String PREFIX = "&#4498DB&lᴊ&#52A0DD&lᴜ&#61A8E0&lꜱ&#6FAFE2&lᴛ&#7EB7E5&lᴄ&#8CBFE7&lʀ&#9BC7EA&lᴀ&#A9CEEC&lᴛ&#B8D6EF&lᴇ&#C6DEF1&lꜱ";
+    private static final String DEFAULT_PREFIX =
+            "&#4498DB&lᴊ&#52A0DD&lᴜ&#61A8E0&lꜱ&#6FAFE2&lᴛ&#7EB7E5&lᴄ&#8CBFE7&lʀ&#9BC7EA&lᴀ&#A9CEEC&lᴛ&#B8D6EF&lᴇ&#C6DEF1&lꜱ";
+    private static String prefix = DEFAULT_PREFIX;
     private static final Map<Character, String> SMALL_CAPS = createSmallCapsMap();
 
     private Text() {}
@@ -22,9 +24,14 @@ public final class Text {
         return ChatColor.translateAlternateColorCodes('&', withHex);
     }
 
+    public static void setPrefix(String newPrefix) {
+        prefix = (newPrefix == null || newPrefix.isBlank()) ? DEFAULT_PREFIX : newPrefix;
+    }
+
     public static String chat(String input) {
-        String content = input == null ? "" : toSmallCaps(input);
-        return color(PREFIX + " &8» &f" + content);
+        String resolved = input == null ? "" : Messages.resolveLiteral(input);
+        String content = toSmallCaps(resolved);
+        return color(prefix + " &8» &f" + content);
     }
 
     public static String toSmallCaps(String input) {
@@ -79,8 +86,8 @@ public final class Text {
 
     private static boolean isHexChar(char c) {
         return (c >= '0' && c <= '9')
-            || (c >= 'a' && c <= 'f')
-            || (c >= 'A' && c <= 'F');
+                || (c >= 'a' && c <= 'f')
+                || (c >= 'A' && c <= 'F');
     }
 
     private static Map<Character, String> createSmallCapsMap() {

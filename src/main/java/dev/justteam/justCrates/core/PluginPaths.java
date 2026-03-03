@@ -11,6 +11,8 @@ public final class PluginPaths {
     private final File keysFolder;
     private final File hologramsFolder;
     private final File blocksFile;
+    private final File messagesFile;
+    private final File previewGuiFile;
 
     public PluginPaths(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -19,6 +21,8 @@ public final class PluginPaths {
         this.keysFolder = new File(dataFolder, "keys");
         this.hologramsFolder = new File(dataFolder, "holograms");
         this.blocksFile = new File(dataFolder, "blocks.yml");
+        this.messagesFile = new File(dataFolder, "messages.yml");
+        this.previewGuiFile = new File(dataFolder, "previewgui.yml");
     }
 
     public void ensure() {
@@ -36,6 +40,8 @@ public final class PluginPaths {
         }
 
         copyDefault("config.yml");
+        copyDefault("messages.yml");
+        copyDefault("previewgui.yml");
 
         if (cratesFolder.listFiles((dir, name) -> name.endsWith(".yml")) == null
                 || cratesFolder.listFiles((dir, name) -> name.endsWith(".yml")).length == 0) {
@@ -74,5 +80,13 @@ public final class PluginPaths {
 
     public File getBlocksFile() {
         return blocksFile;
+    }
+
+    public File getMessagesFile() {
+        return messagesFile;
+    }
+
+    public File getPreviewGuiFile() {
+        return previewGuiFile;
     }
 }

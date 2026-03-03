@@ -41,7 +41,7 @@ public final class CrateListener implements Listener {
 
         if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
             event.setCancelled(true);
-            CratePreviewGui.open(event.getPlayer(), crate);
+            CratePreviewGui.open(event.getPlayer(), crate, plugin.getPreviewGuiSettings());
             return;
         }
 
@@ -65,6 +65,6 @@ public final class CrateListener implements Listener {
             return;
         }
         event.setCancelled(true);
-        CratePreviewGui.open(event.getPlayer(), crate);
+        CratePreviewGui.open(event.getPlayer(), crate, plugin.getPreviewGuiSettings());
     }
 }

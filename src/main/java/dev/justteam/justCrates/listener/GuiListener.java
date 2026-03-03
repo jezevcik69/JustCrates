@@ -1,7 +1,7 @@
 package dev.justteam.justCrates.listener;
 
 import dev.justteam.justCrates.JustCrates;
-import dev.justteam.justCrates.core.Text;
+import dev.justteam.justCrates.core.Messages;
 import dev.justteam.justCrates.gui.CratePreviewHolder;
 import dev.justteam.justCrates.gui.VirtualKeyGui;
 import dev.justteam.justCrates.gui.VirtualKeyMenuHolder;
@@ -85,7 +85,7 @@ public final class GuiListener implements Listener {
             }
         }
         if (!found) {
-            player.sendMessage(Text.chat("&cYou do not have this key in inventory."));
+            player.sendMessage(Messages.get("key-not-in-inventory"));
             return;
         }
         player.getInventory().setContents(contents);
@@ -94,7 +94,7 @@ public final class GuiListener implements Listener {
             player.getInventory().addItem(virtualKey);
         }
 
-        player.sendMessage(Text.chat("&aKey converted to virtual key item."));
+        player.sendMessage(Messages.get("key-converted-virtual"));
         VirtualKeyGui.open(plugin, player, keyService, virtualKeyService);
     }
 

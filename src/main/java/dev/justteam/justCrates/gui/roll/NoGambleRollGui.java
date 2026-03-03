@@ -1,5 +1,6 @@
 package dev.justteam.justCrates.gui.roll;
 
+import dev.justteam.justCrates.core.Messages;
 import dev.justteam.justCrates.core.Text;
 import dev.justteam.justCrates.crate.CrateDefinition;
 import dev.justteam.justCrates.crate.CrateService;
@@ -21,7 +22,7 @@ public final class NoGambleRollGui {
     public static void open(JavaPlugin plugin, Player player, CrateDefinition crate, CrateService crateService) {
         List<RewardDefinition> rewards = crate.getRewards();
         if (rewards.isEmpty()) {
-            player.sendMessage(Text.color("&cThis crate has no rewards."));
+            player.sendMessage(Messages.get("hologram-roll-no-rewards"));
             return;
         }
 
@@ -62,7 +63,7 @@ public final class NoGambleRollGui {
                 ItemMeta meta = preview.getItemMeta();
                 if (meta != null) {
                     java.util.List<String> lore = meta.getLore() == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(meta.getLore());
-                    lore.add(Text.color("&aClick to claim this reward"));
+                    lore.add(Text.color(Text.toSmallCaps(Messages.raw("nogamble-click-claim"))));
                     meta.setLore(lore);
                     preview.setItemMeta(meta);
                 }

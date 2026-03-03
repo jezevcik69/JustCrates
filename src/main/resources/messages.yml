@@ -1,0 +1,184 @@
+﻿# =======================
+# JustCrates Messages
+# =======================
+# Customize all plugin messages here.
+# Supports color codes (&c, &a, etc.) and hex colors (&#RRGGBB).
+# Placeholders: %player%, %key%, %crate%, %time%, %amount%, %value%
+# =======================
+
+# General
+no-permission: "&cɴᴏ ᴘᴇʀᴍɪꜱꜱɪᴏɴ."
+player-only: "&cᴏɴʟʏ ᴘʟᴀʏᴇʀꜱ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ ᴄᴏᴍᴍᴀɴᴅ."
+reloaded: "&aʀᴇʟᴏᴀᴅᴇᴅ."
+player-not-found: "&cᴘʟᴀʏᴇʀ ɴᴏᴛ ꜰᴏᴜɴᴅ."
+key-not-found: "&cᴋᴇʏ ɴᴏᴛ ꜰᴏᴜɴᴅ."
+crate-not-found: "&cᴄʀᴀᴛᴇ ᴅᴏᴇꜱ ɴᴏᴛ ᴇxɪꜱᴛ."
+invalid-number: "&cɪɴᴠᴀʟɪᴅ ɴᴜᴍʙᴇʀ."
+invalid-id: "&cɪɴᴠᴀʟɪᴅ ɪᴅ. ᴜꜱᴇ ᴀ-ᴢ, 0-9, - ᴏʀ _."
+
+# Help menu
+help-title: "&#7EB7E5&lʜᴇʟᴘ ᴍᴇɴᴜ"
+help-crate: "&7/ᴄʀᴀᴛᴇ"
+help-crate-help: "&7/ᴄʀᴀᴛᴇ ʜᴇʟᴘ"
+help-crate-editor: "&7/ᴄʀᴀᴛᴇ ᴇᴅɪᴛᴏʀ"
+help-crate-reload: "&7/ᴄʀᴀᴛᴇ ʀᴇʟᴏᴀᴅ"
+help-crate-key-give: "&7/ᴄʀᴀᴛᴇ ᴋᴇʏ ɢɪᴠᴇ <ᴘʟᴀʏᴇʀ|ᴀʟʟ> <ᴋᴇʏ-ɪᴅ> <ᴀᴍᴏᴜɴᴛ>"
+help-key: "&7/ᴋᴇʏ <ɪᴅ> [ᴘʟᴀʏᴇʀ] [ᴀᴍᴏᴜɴᴛ]"
+
+# Key commands
+key-usage: "&cᴜꜱᴀɢᴇ: /%value% <ɪᴅ> [ᴘʟᴀʏᴇʀ] [ᴀᴍᴏᴜɴᴛ]"
+key-give-usage: "&cᴜꜱᴀɢᴇ: /%value% ᴋᴇʏ ɢɪᴠᴇ <ᴘʟᴀʏᴇʀ|ᴀʟʟ> <ᴋᴇʏ-ɪᴅ> <ᴀᴍᴏᴜɴᴛ>"
+amount-must-be-number: "&cᴀᴍᴏᴜɴᴛ ᴍᴜꜱᴛ ʙᴇ ᴀ ɴᴜᴍʙᴇʀ."
+gave-virtual-key: "&aɢᴀᴠᴇ ᴠɪʀᴛᴜᴀʟ ᴋᴇʏ."
+gave-key: "&aɢᴀᴠᴇ ᴋᴇʏ."
+failed-build-key: "&cꜰᴀɪʟᴇᴅ ᴛᴏ ʙᴜɪʟᴅ ᴋᴇʏ ɪᴛᴇᴍ."
+given-key-to-all: "&aɢɪᴠᴇɴ &f%amount%x &a%value% &7(%key%) &aᴛᴏ &f%count% &aᴘʟᴀʏᴇʀ(ꜱ)."
+given-key-to-player: "&aɢɪᴠᴇɴ &f%amount%x &a%value% &7(%key%) &aᴛᴏ &f%player%&a."
+virtual-key-service-unavailable: "&cᴠɪʀᴛᴜᴀʟ ᴋᴇʏ ꜱᴇʀᴠɪᴄᴇ ɪꜱ ɴᴏᴛ ᴀᴠᴀɪʟᴀʙʟᴇ."
+given-virtual-key-self: "&aɢɪᴠᴇɴ ᴠɪʀᴛᴜᴀʟ ᴋᴇʏ: %key% x%amount%"
+given-virtual-key-other: "&aɢɪᴠᴇɴ ᴠɪʀᴛᴜᴀʟ ᴋᴇʏ ᴛᴏ %player%: %key% x%amount%"
+key-given: "&aᴋᴇʏ ɢɪᴠᴇɴ."
+
+# Crate opening
+crate-no-rewards: "&cᴛʜɪꜱ ᴄʀᴀᴛᴇ ʜᴀꜱ ɴᴏ ʀᴇᴡᴀʀᴅꜱ ꜱᴇᴛ ᴜᴘ."
+crate-no-permission: "&cʏᴏᴜ ᴅᴏɴ'ᴛ ʜᴀᴠᴇ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ᴛᴏ ᴏᴘᴇɴ ᴛʜɪꜱ ᴄʀᴀᴛᴇ."
+crate-cooldown: "&cʏᴏᴜ ᴍᴜꜱᴛ ᴡᴀɪᴛ &f%time%ꜱ &cʙᴇꜰᴏʀᴇ ᴏᴘᴇɴɪɴɢ ᴛʜɪꜱ ᴄʀᴀᴛᴇ ᴀɢᴀɪɴ."
+crate-no-key: "&cʏᴏᴜ ᴅᴏɴ'ᴛ ʜᴀᴠᴇ ᴛʜᴇ ʀᴇǫᴜɪʀᴇᴅ ᴋᴇʏ: &f%key%"
+crate-no-key-title: "&cʏᴏᴜ ᴅᴏɴ'ᴛ ʜᴀᴠᴇ ᴀ ᴋᴇʏ"
+crate-no-key-subtitle: "&7ʀᴇǫᴜɪʀᴇᴅ: &f%key%"
+reward-received: "&aʏᴏᴜ ɢᴏᴛ &f%value%&a!"
+
+# GUI Listener
+key-not-in-inventory: "&cʏᴏᴜ ᴅᴏ ɴᴏᴛ ʜᴀᴠᴇ ᴛʜɪꜱ ᴋᴇʏ ɪɴ ɪɴᴠᴇɴᴛᴏʀʏ."
+key-converted-virtual: "&aᴋᴇʏ ᴄᴏɴᴠᴇʀᴛᴇᴅ ᴛᴏ ᴠɪʀᴛᴜᴀʟ ᴋᴇʏ ɪᴛᴇᴍ."
+
+# Editor - General
+cannot-edit-starter: "&cᴄᴀɴɴᴏᴛ ᴇᴅɪᴛ ꜱᴛᴀʀᴛᴇʀ ɪᴛᴇᴍꜱ."
+cannot-delete-starter: "&cᴄᴀɴɴᴏᴛ ᴅᴇʟᴇᴛᴇ ꜱᴛᴀʀᴛᴇʀ ɪᴛᴇᴍꜱ."
+
+# Editor - Crate
+crate-already-exists: "&cᴀ ᴄʀᴀᴛᴇ ᴡɪᴛʜ ᴛʜɪꜱ ɪᴅ ᴀʟʀᴇᴀᴅʏ ᴇxɪꜱᴛꜱ."
+crate-created: "&aᴄʀᴀᴛᴇ ᴄʀᴇᴀᴛᴇᴅ: %crate%"
+crate-save-failed: "&cꜰᴀɪʟᴇᴅ ᴛᴏ ꜱᴀᴠᴇ ᴄʀᴀᴛᴇ."
+crate-file-not-found: "&cᴄʀᴀᴛᴇ ꜰɪʟᴇ ɴᴏᴛ ꜰᴏᴜɴᴅ."
+crate-deleted: "&aᴄʀᴀᴛᴇ ᴅᴇʟᴇᴛᴇᴅ: %crate% &7(ᴜɴʙᴏᴜɴᴅ: &f%count%&7)."
+crate-delete-failed: "&cꜰᴀɪʟᴇᴅ ᴛᴏ ᴅᴇʟᴇᴛᴇ ᴄʀᴀᴛᴇ ꜰɪʟᴇ."
+crate-delete-confirm: "&cᴛʏᴘᴇ &fᴅᴇʟᴇᴛᴇ %crate% &cᴛᴏ ᴘᴇʀᴍᴀɴᴇɴᴛʟʏ ᴅᴇʟᴇᴛᴇ ᴛʜɪꜱ ᴄʀᴀᴛᴇ."
+crate-delete-unbind-info: "&7ᴛʜɪꜱ ᴡɪʟʟ ᴀʟꜱᴏ ᴜɴʙɪɴᴅ ᴀʟʟ ʙʟᴏᴄᴋꜱ ʟɪɴᴋᴇᴅ ᴛᴏ ɪᴛ."
+crate-delete-cancel-info: "&7ᴛʏᴘᴇ ᴀɴʏᴛʜɪɴɢ ᴇʟꜱᴇ ᴛᴏ ᴄᴀɴᴄᴇʟ."
+crate-deletion-cancelled: "&7ᴄʀᴀᴛᴇ ᴅᴇʟᴇᴛɪᴏɴ ᴄᴀɴᴄᴇʟʟᴇᴅ."
+
+# Editor - Key
+key-does-not-exist: "&cᴋᴇʏ ᴅᴏᴇꜱ ɴᴏᴛ ᴇxɪꜱᴛ."
+key-created: "&aᴋᴇʏ ᴄʀᴇᴀᴛᴇᴅ: %key%"
+key-create-failed: "&cꜰᴀɪʟᴇᴅ ᴛᴏ ᴄʀᴇᴀᴛᴇ ᴋᴇʏ. ɪᴅ ᴍᴀʏ ᴀʟʀᴇᴀᴅʏ ᴇxɪꜱᴛ."
+key-deleted: "&aᴋᴇʏ ᴅᴇʟᴇᴛᴇᴅ: %key%"
+key-delete-failed: "&cꜰᴀɪʟᴇᴅ ᴛᴏ ᴅᴇʟᴇᴛᴇ ᴋᴇʏ ꜰɪʟᴇ."
+key-delete-confirm: "&cᴛʏᴘᴇ &fᴅᴇʟᴇᴛᴇ %key% &cᴛᴏ ᴘᴇʀᴍᴀɴᴇɴᴛʟʏ ᴅᴇʟᴇᴛᴇ ᴛʜɪꜱ ᴋᴇʏ."
+key-delete-cancel-info: "&7ᴛʏᴘᴇ ᴀɴʏᴛʜɪɴɢ ᴇʟꜱᴇ ᴛᴏ ᴄᴀɴᴄᴇʟ."
+key-deletion-cancelled: "&7ᴋᴇʏ ᴅᴇʟᴇᴛɪᴏɴ ᴄᴀɴᴄᴇʟʟᴇᴅ."
+key-mode-updated: "&aᴋᴇʏ ᴍᴏᴅᴇ ꜱᴇᴛ ᴛᴏ: %value%"
+key-mode-update-failed: "&cꜰᴀɪʟᴇᴅ ᴛᴏ ᴜᴘᴅᴀᴛᴇ ᴋᴇʏ ᴍᴏᴅᴇ."
+key-icon-updated: "&aᴋᴇʏ ɪᴄᴏɴ ᴜᴘᴅᴀᴛᴇᴅ: %key%"
+key-icon-update-failed: "&cꜰᴀɪʟᴇᴅ ᴛᴏ ᴜᴘᴅᴀᴛᴇ ᴋᴇʏ ɪᴄᴏɴ."
+key-unbound-from-crate: "&aᴋᴇʏ ᴜɴʙᴏᴜɴᴅ ꜰʀᴏᴍ ᴄʀᴀᴛᴇ."
+
+# Editor - Rewards
+item-reward-added: "&aɪᴛᴇᴍ ʀᴇᴡᴀʀᴅ ᴀᴅᴅᴇᴅ."
+item-reward-add-failed: "&cꜰᴀɪʟᴇᴅ ᴛᴏ ᴀᴅᴅ ɪᴛᴇᴍ ʀᴇᴡᴀʀᴅ."
+command-reward-added: "&aᴄᴏᴍᴍᴀɴᴅ ʀᴇᴡᴀʀᴅ ᴀᴅᴅᴇᴅ."
+command-reward-add-failed: "&cꜰᴀɪʟᴇᴅ ᴛᴏ ᴀᴅᴅ ᴄᴏᴍᴍᴀɴᴅ ʀᴇᴡᴀʀᴅ."
+command-empty: "&cᴄᴏᴍᴍᴀɴᴅ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ."
+reward-not-found: "&cʀᴇᴡᴀʀᴅ ɴᴏᴛ ꜰᴏᴜɴᴅ."
+weight-updated: "&aᴡᴇɪɢʜᴛ ᴜᴘᴅᴀᴛᴇᴅ."
+weight-update-failed: "&cꜰᴀɪʟᴇᴅ ᴛᴏ ᴜᴘᴅᴀᴛᴇ ᴡᴇɪɢʜᴛ."
+
+# Editor - Command Reward Editor
+cmd-reward-editor-title: "&eᴄᴏᴍᴍᴀɴᴅ ʀᴇᴡᴀʀᴅ ᴇᴅɪᴛᴏʀ (&f#%value%&e)"
+cmd-reward-name: "&7ɴᴀᴍᴇ: &f%value%"
+cmd-reward-weight: "&7ᴡᴇɪɢʜᴛ: &f%value%"
+cmd-reward-material: "&7ᴍᴀᴛᴇʀɪᴀʟ: &f%value%"
+cmd-reward-lore-lines: "&7ʟᴏʀᴇ ʟɪɴᴇꜱ: &f%value%"
+cmd-reward-command: "&7ᴄᴏᴍᴍᴀɴᴅ: &f%value%"
+preview-name-updated: "&aᴘʀᴇᴠɪᴇᴡ ɴᴀᴍᴇ ᴜᴘᴅᴀᴛᴇᴅ."
+preview-name-update-failed: "&cꜰᴀɪʟᴇᴅ ᴛᴏ ᴜᴘᴅᴀᴛᴇ ɴᴀᴍᴇ."
+preview-material-updated: "&aᴘʀᴇᴠɪᴇᴡ ᴍᴀᴛᴇʀɪᴀʟ ᴜᴘᴅᴀᴛᴇᴅ."
+preview-material-update-failed: "&cꜰᴀɪʟᴇᴅ ᴛᴏ ᴜᴘᴅᴀᴛᴇ ᴍᴀᴛᴇʀɪᴀʟ."
+preview-material-invalid: "&cɪɴᴠᴀʟɪᴅ ᴍᴀᴛᴇʀɪᴀʟ."
+preview-lore-updated: "&aᴘʀᴇᴠɪᴇᴡ ʟᴏʀᴇ ᴜᴘᴅᴀᴛᴇᴅ."
+preview-lore-update-failed: "&cꜰᴀɪʟᴇᴅ ᴛᴏ ᴜᴘᴅᴀᴛᴇ ʟᴏʀᴇ."
+command-updated: "&aᴄᴏᴍᴍᴀɴᴅ ᴜᴘᴅᴀᴛᴇᴅ."
+command-update-failed: "&cꜰᴀɪʟᴇᴅ ᴛᴏ ᴜᴘᴅᴀᴛᴇ ᴄᴏᴍᴍᴀɴᴅ."
+unknown-action: "&cᴜɴᴋɴᴏᴡɴ ᴀᴄᴛɪᴏɴ."
+
+# Editor - Roll type
+roll-type-set: "&aʀᴏʟʟ ᴛʏᴘᴇ ꜱᴇᴛ ᴛᴏ: %value%"
+
+# Editor - Particle
+particle-invalid: "&cɪɴᴠᴀʟɪᴅ ᴘᴀʀᴛɪᴄʟᴇ ɴᴀᴍᴇ."
+particle-saved: "&aᴘᴀʀᴛɪᴄʟᴇ ꜱᴀᴠᴇᴅ."
+particle-save-failed: "&cꜰᴀɪʟᴇᴅ ᴛᴏ ꜱᴀᴠᴇ ᴘᴀʀᴛɪᴄʟᴇ."
+particle-click-info: "&eᴄʟɪᴄᴋ ᴀ ᴘᴀʀᴛɪᴄʟᴇ ʙᴇʟᴏᴡ ᴛᴏ ꜱᴇᴛ ɪᴛ:"
+particle-type-info: "&7ᴏʀ ᴛʏᴘᴇ ᴀɴʏ ᴏᴛʜᴇʀ ᴘᴀʀᴛɪᴄʟᴇ ɴᴀᴍᴇ ᴍᴀɴᴜᴀʟʟʏ. ᴛʏᴘᴇ &cɴᴏɴᴇ&7 ᴛᴏ ᴄʟᴇᴀʀ."
+
+# Editor - Hologram
+hologram-editor-title: "&eʜᴏʟᴏɢʀᴀᴍ ᴇᴅɪᴛᴏʀ ꜰᴏʀ: &f%crate%"
+hologram-replace-all: "&7ʀᴇᴘʟᴀᴄᴇ ᴀʟʟ: &fʟɪɴᴇ1|ʟɪɴᴇ2|ʟɪɴᴇ3"
+hologram-edit-line: "&7ᴇᴅɪᴛ ʟɪɴᴇ: &fꜱᴇᴛ <ʟɪɴᴇ> <ᴛᴇxᴛ>"
+hologram-remove-line: "&7ʀᴇᴍᴏᴠᴇ ʟɪɴᴇ: &fʀᴇᴍᴏᴠᴇ <ʟɪɴᴇ>"
+hologram-disable: "&7ᴅɪꜱᴀʙʟᴇ: &fɴᴏɴᴇ"
+hologram-exit: "&7ᴇxɪᴛ ᴇᴅɪᴛᴏʀ: &fᴅᴏɴᴇ"
+hologram-rgb-info: "&7ʀɢʙ: &f&#FFAA00ᴍʏ ᴛᴇxᴛ"
+hologram-max-lines: "&7ᴍᴀx ʟɪɴᴇꜱ: &f%value%"
+hologram-placeholders: "&7ᴘʟᴀᴄᴇʜᴏʟᴅᴇʀꜱ: &f%crate_name% &7ᴀɴᴅ &f%crate_id%"
+hologram-updated: "&aʜᴏʟᴏɢʀᴀᴍ ᴜᴘᴅᴀᴛᴇᴅ."
+hologram-disabled: "&aʜᴏʟᴏɢʀᴀᴍ ᴅɪꜱᴀʙʟᴇᴅ."
+hologram-save-failed: "&cꜰᴀɪʟᴇᴅ ᴛᴏ ꜱᴀᴠᴇ ʜᴏʟᴏɢʀᴀᴍ."
+hologram-max-reached: "&cʏᴏᴜ ᴄᴀɴ ʜᴀᴠᴇ ᴍᴀx %value% ʟɪɴᴇꜱ."
+hologram-line-invalid: "&cɪɴᴠᴀʟɪᴅ ʟɪɴᴇ."
+hologram-line-out-of-range: "&cʟɪɴᴇ ᴏᴜᴛ ᴏꜰ ʀᴀɴɢᴇ."
+hologram-line-empty: "&cʟɪɴᴇ ᴛᴇxᴛ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ."
+hologram-line-removed: "&aʟɪɴᴇ ʀᴇᴍᴏᴠᴇᴅ."
+hologram-current-none: "&7ᴄᴜʀʀᴇɴᴛ ʟɪɴᴇꜱ: &cɴᴏɴᴇ"
+hologram-set-usage: "&cᴜꜱᴀɢᴇ: ꜱᴇᴛ <ʟɪɴᴇ> <ᴛᴇxᴛ>"
+hologram-remove-usage: "&cᴜꜱᴀɢᴇ: ʀᴇᴍᴏᴠᴇ <ʟɪɴᴇ>"
+hologram-line-must-be-number: "&cʟɪɴᴇ ᴍᴜꜱᴛ ʙᴇ ᴀ ɴᴜᴍʙᴇʀ."
+hologram-line-range: "&cʟɪɴᴇ ᴍᴜꜱᴛ ʙᴇ ʙᴇᴛᴡᴇᴇɴ 1 ᴀɴᴅ %value%."
+hologram-input-empty: "&cɪɴᴘᴜᴛ ɪꜱ ᴇᴍᴘᴛʏ."
+hologram-enter-new-line: "&eᴛʏᴘᴇ ᴛᴇxᴛ ꜰᴏʀ ɴᴇᴡ ʟɪɴᴇ %value%."
+hologram-enter-edit-line: "&eᴛʏᴘᴇ ɴᴇᴡ ᴛᴇxᴛ ꜰᴏʀ ʟɪɴᴇ %value%."
+
+# Editor - Cooldown & Permission
+cooldown-set: "&aᴄᴏᴏʟᴅᴏᴡɴ ꜱᴇᴛ ᴛᴏ: %value%"
+cooldown-save-failed: "&cꜰᴀɪʟᴇᴅ ᴛᴏ ꜱᴀᴠᴇ ᴄᴏᴏʟᴅᴏᴡɴ."
+permission-set: "&aᴘᴇʀᴍɪꜱꜱɪᴏɴ ꜱᴇᴛ ᴛᴏ: %value%"
+permission-save-failed: "&cꜰᴀɪʟᴇᴅ ᴛᴏ ꜱᴀᴠᴇ ᴘᴇʀᴍɪꜱꜱɪᴏɴ."
+
+# Editor - Input prompts
+enter-crate-id: "&eᴇɴᴛᴇʀ ᴄʀᴀᴛᴇ ɪᴅ (ᴇ.ɢ. &fꜱᴛᴀʀᴛᴇʀ& ᴇ)."
+enter-key-id: "&eᴇɴᴛᴇʀ ᴋᴇʏ ɪᴅ (ᴇ.ɢ. &fꜱᴛᴀʀᴛᴇʀ_ᴋᴇʏ& ᴇ)."
+key-icon-after-creation: "&7ɪᴄᴏɴ ᴄᴀɴ ʙᴇ ꜱᴇᴛ ɪɴ ɢᴜɪ ᴇᴅɪᴛᴏʀ ᴀꜰᴛᴇʀ ᴄʀᴇᴀᴛɪᴏɴ."
+enter-weight: "&eᴇɴᴛᴇʀ ɴᴇᴡ ᴡᴇɪɢʜᴛ (ɴᴜᴍʙᴇʀ)."
+enter-command: "&eᴇɴᴛᴇʀ ᴄᴏᴍᴍᴀɴᴅ ᴛᴏ ᴇxᴇᴄᴜᴛᴇ ᴏɴ ʀᴇᴡᴀʀᴅ."
+command-example: "&7ᴇxᴀᴍᴘʟᴇ: &fᴄʀᴀᴛᴇ ᴋᴇʏ ɢɪᴠᴇ %player% ꜱᴛᴀʀᴛᴇʀ_ᴋᴇʏ 1"
+command-edit-info: "&7ᴛʜᴇɴ ʟᴇꜰᴛ ᴄʟɪᴄᴋ ʀᴇᴡᴀʀᴅ ᴛᴏ ᴇᴅɪᴛ ɴᴀᴍᴇ/ᴍᴀᴛᴇʀɪᴀʟ/ʟᴏʀᴇ/ᴡᴇɪɢʜᴛ."
+enter-cooldown: "&eᴇɴᴛᴇʀ ᴄᴏᴏʟᴅᴏᴡɴ ɪɴ ꜱᴇᴄᴏɴᴅꜱ (0 ᴛᴏ ᴅɪꜱᴀʙʟᴇ)."
+enter-permission: "&eᴇɴᴛᴇʀ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ɴᴏᴅᴇ (ᴇ.ɢ. &fᴊᴜꜱᴛᴄʀᴀᴛᴇꜱ.ᴄʀᴀᴛᴇ.%crate%&e)."
+permission-remove-info: "&7ᴛʏᴘᴇ &fɴᴏɴᴇ &7ᴛᴏ ʀᴇᴍᴏᴠᴇ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ʀᴇǫᴜɪʀᴇᴍᴇɴᴛ."
+click-item-set-icon: "&aɴᴏᴡ ᴄʟɪᴄᴋ ᴀɴʏ ɪᴛᴇᴍ ɪɴ ʏᴏᴜʀ ɪɴᴠᴇɴᴛᴏʀʏ ᴛᴏ ꜱᴇᴛ ɪᴛ ᴀꜱ ᴛʜᴇ ᴋᴇʏ ɪᴄᴏɴ."
+click-item-add-reward: "&aɴᴏᴡ ᴄʟɪᴄᴋ ᴀɴʏ ɪᴛᴇᴍ ɪɴ ʏᴏᴜʀ ɪɴᴠᴇɴᴛᴏʀʏ ᴛᴏ ᴀᴅᴅ ɪᴛ ᴀꜱ ᴀ ʀᴇᴡᴀʀᴅ."
+enter-preview-name: "&eᴛʏᴘᴇ ɴᴇᴡ ᴘʀᴇᴠɪᴇᴡ ɴᴀᴍᴇ. ᴜꜱᴇ ᴄᴏʟᴏʀꜱ (&). ᴛʏᴘᴇ &fɴᴏɴᴇ &eᴛᴏ ᴄʟᴇᴀʀ."
+enter-preview-weight: "&eᴛʏᴘᴇ ɴᴇᴡ ᴡᴇɪɢʜᴛ (ɴᴜᴍʙᴇʀ)."
+enter-preview-material: "&eᴛʏᴘᴇ ᴘʀᴇᴠɪᴇᴡ ᴍᴀᴛᴇʀɪᴀʟ (ᴇ.ɢ. &fɢᴏʟᴅ_ɪɴɢᴏᴛ&e)."
+enter-preview-lore: "&eᴛʏᴘᴇ ʟᴏʀᴇ ʟɪɴᴇꜱ ꜱᴇᴘᴀʀᴀᴛᴇᴅ ʙʏ &f|&e. ᴛʏᴘᴇ &fɴᴏɴᴇ &eᴛᴏ ᴄʟᴇᴀʀ ʟᴏʀᴇ."
+enter-reward-command: "&eᴛʏᴘᴇ ᴄᴏᴍᴍᴀɴᴅ ᴛᴏ ʀᴜɴ ᴏɴ ʀᴇᴡᴀʀᴅ."
+
+# Editor - Bind/Unbind
+click-block-bind: "&aᴄʟɪᴄᴋ ᴀ ʙʟᴏᴄᴋ ᴛᴏ ʙɪɴᴅ ᴛʜᴇ ᴄʀᴀᴛᴇ."
+click-block-unbind: "&cᴄʟɪᴄᴋ ᴀ ʙᴏᴜɴᴅ ʙʟᴏᴄᴋ ᴛᴏ ᴜɴʙɪɴᴅ ɪᴛ."
+block-bound: "&aʙʟᴏᴄᴋ ʙᴏᴜɴᴅ ᴛᴏ ᴄʀᴀᴛᴇ: %crate%"
+block-unbound: "&aᴄʀᴀᴛᴇ ʙʟᴏᴄᴋ ᴜɴʙᴏᴜɴᴅ."
+
+# Hologram Roll GUI
+hologram-roll-no-rewards: "&cᴛʜɪꜱ ᴄʀᴀᴛᴇ ʜᴀꜱ ɴᴏ ʀᴇᴡᴀʀᴅꜱ."
+nogamble-click-claim: "&aᴄʟɪᴄᴋ ᴛᴏ ᴄʟᴀɪᴍ ᴛʜɪꜱ ʀᴇᴡᴀʀᴅ"

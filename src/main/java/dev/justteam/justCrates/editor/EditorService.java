@@ -1,6 +1,7 @@
 package dev.justteam.justCrates.editor;
 
 import dev.justteam.justCrates.JustCrates;
+import dev.justteam.justCrates.core.Messages;
 import dev.justteam.justCrates.core.PluginPaths;
 import dev.justteam.justCrates.core.Text;
 import dev.justteam.justCrates.crate.BlockCrateService;
@@ -116,7 +117,7 @@ public final class EditorService {
             return;
         }
         keyService.loadAll();
-        player.sendMessage(Text.chat("&aKey icon updated: " + keyId));
+        player.sendMessage(Messages.get("key-icon-updated", "%key%", keyId));
         player.closeInventory();
         Bukkit.getScheduler().runTaskLater(plugin, () -> openKeyEditor(player, keyId), 1L);
     }
@@ -545,7 +546,7 @@ public final class EditorService {
                 ? List.of()
                 : crate.getHologramLines();
 
-        player.sendMessage(Text.chat("&eHologram editor for: &f" + crateId));
+        player.sendMessage(Messages.get("hologram-editor-title", "%crate%", crateId));
         sendHologramEditorChat(player, currentLines);
         player.sendMessage(Text.chat("&7Replace all: &fline1|line2|line3"));
         player.sendMessage(Text.chat("&7Edit line: &fset <line> <text>"));
@@ -553,14 +554,14 @@ public final class EditorService {
         player.sendMessage(Text.chat("&7Disable: &fnone"));
         player.sendMessage(Text.chat("&7Exit editor: &fdone"));
         player.sendMessage(Text.chat("&7RGB: &f&#FFAA00My Text"));
-        player.sendMessage(Text.chat("&7Max lines: &f" + getHologramMaxLines()));
+        player.sendMessage(Messages.get("hologram-max-lines", "%value%", String.valueOf(getHologramMaxLines())));
         player.sendMessage(Text.chat("&7Placeholders: &f%crate_name% &7and &f%crate_id%"));
     }
 
     public void startDeleteCrate(Player player, String crateId) {
         pendingInput.put(player.getUniqueId(), new EditorInput(EditorInputType.DELETE_CRATE_CONFIRM, crateId, null));
         player.closeInventory();
-        player.sendMessage(Text.chat("&cType &fdelete " + crateId + " &cto permanently delete this crate."));
+        player.sendMessage(Messages.get("crate-delete-confirm", "%crate%", crateId));
         player.sendMessage(Text.chat("&7This will also unbind all blocks linked to it."));
         player.sendMessage(Text.chat("&7Type anything else to cancel."));
     }
@@ -568,7 +569,7 @@ public final class EditorService {
     public void startDeleteKey(Player player, String keyId) {
         pendingInput.put(player.getUniqueId(), new EditorInput(EditorInputType.DELETE_KEY_CONFIRM, keyId, null));
         player.closeInventory();
-        player.sendMessage(Text.chat("&cType &fdelete " + keyId + " &cto permanently delete this key."));
+        player.sendMessage(Messages.get("key-delete-confirm", "%key%", keyId));
         player.sendMessage(Text.chat("&7Type anything else to cancel."));
     }
 
@@ -581,7 +582,7 @@ public final class EditorService {
     public void startSetPermission(Player player, String crateId) {
         pendingInput.put(player.getUniqueId(), new EditorInput(EditorInputType.SET_CRATE_PERMISSION, crateId, null));
         player.closeInventory();
-        player.sendMessage(Text.chat("&eEnter permission node (e.g. &fjustcrates.crate." + crateId + "&e)."));
+        player.sendMessage(Messages.get("enter-permission", "%crate%", crateId));
         player.sendMessage(Text.chat("&7Type &fnone &7to remove permission requirement."));
     }
 
@@ -737,7 +738,7 @@ public final class EditorService {
                 return;
             }
             keyService.loadAll();
-            player.sendMessage(Text.chat("&aKey mode set to: " + (next ? "Virtual" : "Physical")));
+            player.sendMessage(Messages.get("key-mode-updated", "%value%", next ? "Virtual" : "Physical"));
             openKeyEditor(player, keyId);
             return;
         }
@@ -883,7 +884,7 @@ public final class EditorService {
         if (rollType != null) {
             setCrateRollType(crateId, rollType);
             crateService.loadAll();
-            player.sendMessage(Text.chat("&aRoll type set to: " + rollType));
+            player.sendMessage(Messages.get("roll-type-set", "%value%", rollType));
             openCrateEditor(player, crateId);
         }
     }
@@ -933,7 +934,7 @@ public final class EditorService {
             cfg.save(file);
             saveCrateHologramLines(id, getDefaultHologramLines());
             crateService.loadAll();
-            player.sendMessage(Text.chat("&aCrate created: " + id));
+            player.sendMessage(Messages.get("crate-created", "%crate%", id));
             openCrateEditor(player, id);
         } catch (IOException e) {
             player.sendMessage(Text.chat("&cFailed to save crate."));
@@ -949,7 +950,7 @@ public final class EditorService {
         boolean saved = keyService.createDefaultKey(id);
         if (saved) {
             keyService.loadAll();
-            player.sendMessage(Text.chat("&aKey created: " + id));
+            player.sendMessage(Messages.get("key-created", "%key%", id));
             openKeyEditor(player, id);
         } else {
             player.sendMessage(Text.chat("&cFailed to create key. ID may already exist."));
@@ -1017,12 +1018,12 @@ public final class EditorService {
 
         if (lower.equals("holo_add") || lower.equals("+")) {
             if (lines.size() >= maxLines) {
-                player.sendMessage(Text.chat("&cYou can have max " + maxLines + " lines."));
+                player.sendMessage(Messages.get("hologram-max-reached", "%value%", String.valueOf(maxLines)));
                 sendHologramEditorChat(player, lines);
                 return;
             }
             hologramAwaitingLineInput.put(player.getUniqueId(), -1);
-            player.sendMessage(Text.chat("&eType text for new line " + (lines.size() + 1) + "."));
+            player.sendMessage(Messages.get("hologram-enter-new-line", "%value%", String.valueOf(lines.size() + 1)));
             return;
         }
 
@@ -1042,7 +1043,7 @@ public final class EditorService {
                 return;
             }
             hologramAwaitingLineInput.put(player.getUniqueId(), lineIndex);
-            player.sendMessage(Text.chat("&eType new text for line " + lineIndex + "."));
+            player.sendMessage(Messages.get("hologram-enter-edit-line", "%value%", String.valueOf(lineIndex)));
             return;
         }
 
@@ -1080,7 +1081,7 @@ public final class EditorService {
             }
             if (awaitingLine == -1) {
                 if (lines.size() >= maxLines) {
-                    player.sendMessage(Text.chat("&cYou can have max " + maxLines + " lines."));
+                    player.sendMessage(Messages.get("hologram-max-reached", "%value%", String.valueOf(maxLines)));
                     sendHologramEditorChat(player, lines);
                     return;
                 }
@@ -1121,7 +1122,7 @@ public final class EditorService {
                 return;
             }
             if (lineIndex < 1 || lineIndex > maxLines) {
-                player.sendMessage(Text.chat("&cLine must be between 1 and " + maxLines + "."));
+                player.sendMessage(Messages.get("hologram-line-range", "%value%", String.valueOf(maxLines)));
                 sendHologramEditorChat(player, lines);
                 return;
             }
@@ -1213,7 +1214,10 @@ public final class EditorService {
         blockCrateService.save();
         crateService.loadAll();
         blockCrateService.refreshHolograms();
-        player.sendMessage(Text.chat("&aCrate deleted: " + crateId + " &7(unbound: &f" + unbound + "&7)."));
+        player.sendMessage(Messages.get(
+                "crate-deleted",
+                "%crate%", crateId,
+                "%count%", String.valueOf(unbound)));
         openCratesMenu(player);
     }
 
@@ -1244,7 +1248,7 @@ public final class EditorService {
 
         keyService.loadAll();
         crateService.loadAll();
-        player.sendMessage(Text.chat("&aKey deleted: " + keyId));
+        player.sendMessage(Messages.get("key-deleted", "%key%", keyId));
         openKeysMenu(player);
     }
 
@@ -1271,7 +1275,9 @@ public final class EditorService {
         try {
             cfg.save(file);
             crateService.loadAll();
-            player.sendMessage(Text.chat("&aCooldown set to: " + (cooldown > 0 ? cooldown + "s" : "Disabled")));
+            player.sendMessage(Messages.get(
+                    "cooldown-set",
+                    "%value%", cooldown > 0 ? cooldown + "s" : "Disabled"));
             openCrateEditor(player, crateId);
         } catch (IOException e) {
             player.sendMessage(Text.chat("&cFailed to save cooldown."));
@@ -1298,7 +1304,9 @@ public final class EditorService {
         try {
             cfg.save(file);
             crateService.loadAll();
-            player.sendMessage(Text.chat("&aPermission set to: " + (perm.isBlank() ? "None" : perm)));
+            player.sendMessage(Messages.get(
+                    "permission-set",
+                    "%value%", perm.isBlank() ? "None" : perm));
             openCrateEditor(player, crateId);
         } catch (IOException e) {
             player.sendMessage(Text.chat("&cFailed to save permission."));
@@ -1317,7 +1325,7 @@ public final class EditorService {
             return;
         }
         if (!setRewardWeight(crateId, index, weight)) {
-            player.sendMessage(Text.chat("&cFailed to update reward."));
+            player.sendMessage(Messages.get("weight-update-failed"));
             return;
         }
         crateService.loadAll();
@@ -1365,16 +1373,25 @@ public final class EditorService {
         pendingInput.put(player.getUniqueId(),
                 new EditorInput(EditorInputType.EDIT_COMMAND_REWARD_MENU, crateId, rewardIndex));
         player.closeInventory();
-        player.sendMessage(Text.chat("&eCommand Reward Editor (&f#" + (rewardIndex + 1) + "&e)"));
-        player.sendMessage(Text.chat("&7Name: &f"
-                + (reward.getPreviewName() == null || reward.getPreviewName().isBlank() ? "&cNone" : reward.getPreviewName())));
-        player.sendMessage(Text.chat("&7Weight: &f" + reward.getWeight()));
-        player.sendMessage(Text.chat("&7Material: &f"
-                + (reward.getPreviewMaterial() == null || reward.getPreviewMaterial().isBlank() ? "COMMAND_BLOCK"
-                        : reward.getPreviewMaterial())));
-        player.sendMessage(Text.chat("&7Lore lines: &f" + (reward.getPreviewLore() == null ? 0 : reward.getPreviewLore().size())));
-        player.sendMessage(Text.chat("&7Command: &f"
-                + (reward.getCommands() == null || reward.getCommands().isEmpty() ? "&cNone" : reward.getCommands().get(0))));
+        player.sendMessage(Messages.get("cmd-reward-editor-title", "%value%", String.valueOf(rewardIndex + 1)));
+        player.sendMessage(Messages.get(
+                "cmd-reward-name",
+                "%value%",
+                reward.getPreviewName() == null || reward.getPreviewName().isBlank() ? "&cNone" : reward.getPreviewName()));
+        player.sendMessage(Messages.get("cmd-reward-weight", "%value%", String.valueOf(reward.getWeight())));
+        player.sendMessage(Messages.get(
+                "cmd-reward-material",
+                "%value%",
+                reward.getPreviewMaterial() == null || reward.getPreviewMaterial().isBlank() ? "COMMAND_BLOCK"
+                        : reward.getPreviewMaterial()));
+        player.sendMessage(Messages.get(
+                "cmd-reward-lore-lines",
+                "%value%",
+                String.valueOf(reward.getPreviewLore() == null ? 0 : reward.getPreviewLore().size())));
+        player.sendMessage(Messages.get(
+                "cmd-reward-command",
+                "%value%",
+                reward.getCommands() == null || reward.getCommands().isEmpty() ? "&cNone" : reward.getCommands().get(0)));
 
         sendCommandRewardAction(player, "&b[Set Name]", "cmdr_set_name " + rewardIndex, "&7Change preview display name");
         sendCommandRewardAction(player, "&e[Set Weight]", "cmdr_set_weight " + rewardIndex, "&7Change reward weight");
@@ -1460,7 +1477,7 @@ public final class EditorService {
             return;
         }
         if (!updateCommandReward(crateId, rewardIndex, map -> map.put("weight", weight))) {
-            player.sendMessage(Text.chat("&cFailed to update weight."));
+            player.sendMessage(Messages.get("weight-update-failed"));
             return;
         }
         crateService.loadAll();
@@ -1756,9 +1773,16 @@ public final class EditorService {
             }
             virtualKeyService.addKeys(target.getUniqueId(), key.getId(), amount);
             if (sender.getUniqueId().equals(target.getUniqueId())) {
-                sender.sendMessage(Text.chat("&aGiven virtual key: " + keyId + " x" + amount));
+                sender.sendMessage(Messages.get(
+                        "given-virtual-key-self",
+                        "%key%", keyId,
+                        "%amount%", String.valueOf(amount)));
             } else {
-                sender.sendMessage(Text.chat("&aGiven virtual key to " + target.getName() + ": " + keyId + " x" + amount));
+                sender.sendMessage(Messages.get(
+                        "given-virtual-key-other",
+                        "%player%", target.getName(),
+                        "%key%", keyId,
+                        "%amount%", String.valueOf(amount)));
             }
             return;
         }
@@ -1789,7 +1813,7 @@ public final class EditorService {
             return false;
         }
         keyService.loadAll();
-        player.sendMessage(Text.chat("&aKey icon updated: " + keyId));
+        player.sendMessage(Messages.get("key-icon-updated", "%key%", keyId));
         openKeyEditor(player, keyId);
         return true;
     }

@@ -1,5 +1,6 @@
 package dev.justteam.justCrates.gui.roll;
 
+import dev.justteam.justCrates.core.Messages;
 import dev.justteam.justCrates.core.Text;
 import dev.justteam.justCrates.crate.BlockCrateService;
 import dev.justteam.justCrates.crate.CrateDefinition;
@@ -31,7 +32,7 @@ public final class HologramRollGui {
 
         List<RewardDefinition> rewards = crate.getRewards();
         if (rewards.isEmpty()) {
-            player.sendMessage(Text.chat("&cThis crate has no rewards."));
+            player.sendMessage(Messages.get("hologram-roll-no-rewards"));
             return;
         }
 

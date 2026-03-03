@@ -1,7 +1,10 @@
 package dev.justteam.justCrates;
 
 import dev.justteam.justCrates.command.JustCratesCommand;
+import dev.justteam.justCrates.core.Messages;
 import dev.justteam.justCrates.core.PluginPaths;
+import dev.justteam.justCrates.core.PreviewGuiSettings;
+import dev.justteam.justCrates.core.Text;
 import dev.justteam.justCrates.crate.BlockCrateService;
 import dev.justteam.justCrates.crate.CrateService;
 import dev.justteam.justCrates.editor.EditorListener;
@@ -16,6 +19,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class JustCrates extends JavaPlugin {
+    private PluginPaths pluginPaths;
+    private PreviewGuiSettings previewGuiSettings;
     private KeyService keyService;
     private VirtualKeyService virtualKeyService;
     private CrateService crateService;
@@ -24,19 +29,21 @@ public final class JustCrates extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        PluginPaths paths = new PluginPaths(this);
-        paths.ensure();
+        this.pluginPaths = new PluginPaths(this);
+        this.pluginPaths.ensure();
         reloadConfig();
+        this.previewGuiSettings = new PreviewGuiSettings(pluginPaths.getPreviewGuiFile());
+        reloadRuntimeAssets();
 
         ProviderRegistry providerRegistry = new ProviderRegistry(this);
         providerRegistry.detect();
 
-        this.keyService = new KeyService(this, providerRegistry, paths);
-        this.virtualKeyService = new VirtualKeyService(this, paths, keyService);
-        this.crateService = new CrateService(this, providerRegistry, paths, keyService, virtualKeyService);
-        this.blockCrateService = new BlockCrateService(this, paths, crateService);
+        this.keyService = new KeyService(this, providerRegistry, pluginPaths);
+        this.virtualKeyService = new VirtualKeyService(this, pluginPaths, keyService);
+        this.crateService = new CrateService(this, providerRegistry, pluginPaths, keyService, virtualKeyService);
+        this.blockCrateService = new BlockCrateService(this, pluginPaths, crateService);
         this.crateService.setBlockCrateService(blockCrateService);
-        this.editorService = new EditorService(this, paths, crateService, keyService, blockCrateService);
+        this.editorService = new EditorService(this, pluginPaths, crateService, keyService, blockCrateService);
 
         this.keyService.loadAll();
         this.crateService.loadAll();
@@ -89,5 +96,28 @@ public final class JustCrates extends JavaPlugin {
 
     public EditorService getEditorService() {
         return editorService;
+    }
+
+    public PreviewGuiSettings getPreviewGuiSettings() {
+        return previewGuiSettings;
+    }
+
+    public void reloadRuntimeAssets() {
+        Text.setPrefix(getConfig().getString("settings.prefix"));
+        Messages.load(pluginPaths.getMessagesFile());
+        if (previewGuiSettings != null) {
+            previewGuiSettings.reload();
+        }
+    }
+
+    public void reloadAllData() {
+        reloadConfig();
+        reloadRuntimeAssets();
+        this.keyService.loadAll();
+        this.crateService.loadAll();
+        this.blockCrateService.load();
+        if (this.virtualKeyService != null) {
+            this.virtualKeyService.reload();
+        }
     }
 }

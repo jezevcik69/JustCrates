@@ -1,5 +1,6 @@
 package dev.justteam.justCrates.crate;
 
+import dev.justteam.justCrates.core.Messages;
 import dev.justteam.justCrates.core.PluginPaths;
 import dev.justteam.justCrates.core.Text;
 import dev.justteam.justCrates.gui.roll.RollGuiFactory;
@@ -158,7 +159,7 @@ public final class CrateService {
         }
 
         if (crate.getRewards().isEmpty()) {
-            player.sendMessage(Text.chat("&cThis crate has no rewards set up."));
+            player.sendMessage(Messages.get("crate-no-rewards"));
             if (block != null) {
                 knockback(player, block);
             }
@@ -167,7 +168,7 @@ public final class CrateService {
 
         if (crate.getPermission() != null && !crate.getPermission().isBlank()) {
             if (!player.hasPermission(crate.getPermission())) {
-                player.sendMessage(Text.chat("&cYou don't have permission to open this crate."));
+                player.sendMessage(Messages.get("crate-no-permission"));
                 return;
             }
         }
@@ -179,7 +180,7 @@ public final class CrateService {
                 long elapsed = (System.currentTimeMillis() - lastUse) / 1000;
                 long remaining = crate.getCooldown() - elapsed;
                 if (remaining > 0) {
-                    player.sendMessage(Text.chat("&cYou must wait &f" + remaining + "s &cbefore opening this crate again."));
+                    player.sendMessage(Messages.get("crate-cooldown", "%time%", String.valueOf(remaining)));
                     return;
                 }
             }
@@ -214,10 +215,10 @@ public final class CrateService {
             }
 
             if (!consumed) {
-                player.sendMessage(Text.chat("&cYou don't have the required key: &f" + crate.getKeyId()));
+                player.sendMessage(Messages.get("crate-no-key", "%key%", crate.getKeyId()));
                 player.sendTitle(
-                        Text.color("&c" + Text.toSmallCaps("You don't have a key")),
-                        Text.color("&7" + Text.toSmallCaps("Required: ") + "&f" + crate.getKeyId()),
+                        Text.color(Text.toSmallCaps(Messages.formatRaw("crate-no-key-title"))),
+                        Text.color(Text.toSmallCaps(Messages.formatRaw("crate-no-key-subtitle", "%key%", crate.getKeyId()))),
                         10,
                         40,
                         10);
@@ -260,7 +261,7 @@ public final class CrateService {
                 String command = cmd.replace("%player%", player.getName());
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
             }
-            player.sendMessage(Text.chat("&aYou got &f" + resolveRewardDisplayName(reward) + "&a!"));
+            player.sendMessage(Messages.get("reward-received", "%value%", resolveRewardDisplayName(reward)));
             return;
         }
 
@@ -272,7 +273,7 @@ public final class CrateService {
         }
         if (item != null) {
             player.getInventory().addItem(item);
-            player.sendMessage(Text.chat("&aYou got &f" + resolveRewardDisplayName(reward) + "&a!"));
+            player.sendMessage(Messages.get("reward-received", "%value%", resolveRewardDisplayName(reward)));
         }
     }
 
