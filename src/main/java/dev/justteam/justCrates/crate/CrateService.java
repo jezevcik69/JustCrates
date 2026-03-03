@@ -24,6 +24,7 @@ import org.bukkit.util.Vector;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class CrateService {
     private final JavaPlugin plugin;
@@ -34,6 +35,8 @@ public final class CrateService {
     private final CrateRegistry registry;
     private final ItemFactory itemFactory;
     private final Random random;
+    private final Map<UUID, Map<String, Long>> cooldowns = new ConcurrentHashMap<>();
+    private BlockCrateService blockCrateService;
 
     public CrateService(JavaPlugin plugin, ProviderRegistry providerRegistry, PluginPaths paths, KeyService keyService, VirtualKeyService virtualKeyService) {
         this.plugin = plugin;
@@ -44,6 +47,10 @@ public final class CrateService {
         this.registry = new CrateRegistry();
         this.itemFactory = new ItemFactory(plugin, providerRegistry);
         this.random = new Random();
+    }
+
+    public void setBlockCrateService(BlockCrateService blockCrateService) {
+        this.blockCrateService = blockCrateService;
     }
 
     public void loadAll() {
@@ -66,6 +73,8 @@ public final class CrateService {
                 hologramLines = new ArrayList<>(hologramLines.subList(0, maxLines));
             }
             String keyId = cfg.getString("key", "").trim();
+            int cooldown = cfg.getInt("cooldown", 0);
+            String permission = cfg.getString("permission", "");
 
             RollType rollType;
             try {
@@ -128,7 +137,7 @@ public final class CrateService {
             }
 
             CrateDefinition crate = new CrateDefinition(id, type, name, lore, keyId, roll, rewards, particle,
-                    hologramLines);
+                    hologramLines, cooldown, permission);
             registry.register(crate);
         }
 
@@ -148,8 +157,41 @@ public final class CrateService {
             return;
         }
 
-        boolean consumed = false;
-        if (!crate.getKeyId().isEmpty()) {
+        // Empty rewards check
+        if (crate.getRewards().isEmpty()) {
+            player.sendMessage(Text.chat("&cThis crate has no rewards set up."));
+            if (block != null) {
+                knockback(player, block);
+            }
+            return;
+        }
+
+        // Permission check
+        if (crate.getPermission() != null && !crate.getPermission().isBlank()) {
+            if (!player.hasPermission(crate.getPermission())) {
+                player.sendMessage(Text.chat("&cYou don't have permission to open this crate."));
+                return;
+            }
+        }
+
+        // Cooldown check
+        if (crate.getCooldown() > 0) {
+            Map<String, Long> playerCooldowns = cooldowns.computeIfAbsent(player.getUniqueId(), k -> new HashMap<>());
+            Long lastUse = playerCooldowns.get(crate.getId());
+            if (lastUse != null) {
+                long elapsed = (System.currentTimeMillis() - lastUse) / 1000;
+                long remaining = crate.getCooldown() - elapsed;
+                if (remaining > 0) {
+                    player.sendMessage(Text.chat("&cYou must wait &f" + remaining + "s &cbefore opening this crate again."));
+                    return;
+                }
+            }
+        }
+
+        // Key check - if key is set, player must have it
+        boolean needsKey = crate.getKeyId() != null && !crate.getKeyId().isEmpty();
+        if (needsKey) {
+            boolean consumed = false;
             ItemStack hand = player.getInventory().getItemInMainHand();
             if (keyService.isKey(hand, crate.getKeyId())) {
                 hand.setAmount(hand.getAmount() - 1);
@@ -173,41 +215,30 @@ public final class CrateService {
                     consumed = true;
                 }
             }
+
+            if (!consumed) {
+                player.sendMessage(Text.chat("&cYou don't have the required key: &f" + crate.getKeyId()));
+                player.sendTitle(
+                        Text.color("&c" + Text.toSmallCaps("You don't have a key")),
+                        Text.color("&7" + Text.toSmallCaps("Required: ") + "&f" + crate.getKeyId()),
+                        10,
+                        40,
+                        10);
+
+                if (block != null) {
+                    knockback(player, block);
+                }
+                return;
+            }
         }
 
-        if (!consumed) {
-            String keyId = crate.getKeyId();
-            if (keyId.isEmpty()) {
-                keyId = "N/A";
-            }
-            player.sendMessage(Text.chat("&cYou don't have the required key: &f" + keyId));
-            player.sendTitle(
-                    Text.color("&c" + Text.toSmallCaps("You don't have a key")),
-                    Text.color("&7" + Text.toSmallCaps("Required: ") + "&f" + keyId),
-                    10,
-                    40,
-                    10);
-
-            if (block != null) {
-                BoundingBox box = block.getBoundingBox();
-                Vector crateCenter = box.getCenter();
-                Vector knockback = player.getLocation().toVector().subtract(crateCenter);
-                knockback.setY(0);
-                if (knockback.lengthSquared() < 0.0001) {
-                    knockback = player.getLocation().getDirection().setY(0).multiply(-1);
-                }
-                if (knockback.lengthSquared() >= 0.0001) {
-                    knockback.normalize().multiply(1.0);
-                } else {
-                    knockback = new Vector(0, 0, 0);
-                }
-                knockback.setY(0.4);
-                player.setVelocity(knockback);
-            }
-            return;
+        // Set cooldown
+        if (crate.getCooldown() > 0) {
+            cooldowns.computeIfAbsent(player.getUniqueId(), k -> new HashMap<>())
+                    .put(crate.getId(), System.currentTimeMillis());
         }
 
-        RollGuiFactory.open(plugin, player, crate, this);
+        RollGuiFactory.open(plugin, player, crate, this, block, blockCrateService);
     }
 
     public RewardDefinition rollReward(CrateDefinition crate) {
@@ -275,6 +306,23 @@ public final class CrateService {
             }
         }
         return "Reward";
+    }
+
+    private void knockback(Player player, Block block) {
+        BoundingBox box = block.getBoundingBox();
+        Vector crateCenter = box.getCenter();
+        Vector knockback = player.getLocation().toVector().subtract(crateCenter);
+        knockback.setY(0);
+        if (knockback.lengthSquared() < 0.0001) {
+            knockback = player.getLocation().getDirection().setY(0).multiply(-1);
+        }
+        if (knockback.lengthSquared() >= 0.0001) {
+            knockback.normalize().multiply(1.2);
+        } else {
+            knockback = new Vector(0, 0, 0);
+        }
+        knockback.setY(0.65);
+        player.setVelocity(knockback);
     }
 
     private List<String> getDefaultHologramLines() {

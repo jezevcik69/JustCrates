@@ -120,6 +120,18 @@ public final class BlockCrateService {
         return new Location(world, x, y, z);
     }
 
+    public void hideHologram(Location location) {
+        String key = serialize(location);
+        removeHologram(key);
+    }
+
+    public void showHologram(Location location) {
+        String key = serialize(location);
+        if (bindings.containsKey(key)) {
+            refreshHologram(key);
+        }
+    }
+
     public void refreshHolograms() {
         if (bindings.isEmpty() || crateService == null) {
             clearAllHolograms();

@@ -5,15 +5,19 @@ import dev.justteam.justCrates.core.Text;
 import dev.justteam.justCrates.gui.CratePreviewHolder;
 import dev.justteam.justCrates.gui.VirtualKeyGui;
 import dev.justteam.justCrates.gui.VirtualKeyMenuHolder;
+import dev.justteam.justCrates.gui.roll.NoGambleInventoryHolder;
 import dev.justteam.justCrates.gui.roll.RollInventoryHolder;
 import dev.justteam.justCrates.key.KeyDefinition;
 import dev.justteam.justCrates.key.KeyService;
 import dev.justteam.justCrates.key.VirtualKeyService;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
@@ -35,6 +39,14 @@ public final class GuiListener implements Listener {
         }
         if (holder instanceof RollInventoryHolder) {
             event.setCancelled(true);
+            return;
+        }
+        if (holder instanceof NoGambleInventoryHolder noGambleHolder) {
+            event.setCancelled(true);
+            if (!(event.getWhoClicked() instanceof Player player)) {
+                return;
+            }
+            noGambleHolder.handleClick(player, event.getRawSlot());
             return;
         }
         if (!(holder instanceof VirtualKeyMenuHolder)) {
@@ -87,9 +99,25 @@ public final class GuiListener implements Listener {
     }
 
     @EventHandler
+    public void onInventoryClose(InventoryCloseEvent event) {
+        InventoryHolder holder = event.getInventory().getHolder();
+        if (holder instanceof RollInventoryHolder rollHolder) {
+            if (!rollHolder.isFinished() && event.getPlayer() instanceof Player player) {
+                Inventory inv = event.getInventory();
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    if (player.isOnline()) {
+                        player.openInventory(inv);
+                    }
+                }, 1L);
+            }
+        }
+    }
+
+    @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
         InventoryHolder holder = event.getInventory().getHolder();
-        if (holder instanceof CratePreviewHolder || holder instanceof RollInventoryHolder || holder instanceof VirtualKeyMenuHolder) {
+        if (holder instanceof CratePreviewHolder || holder instanceof RollInventoryHolder
+                || holder instanceof VirtualKeyMenuHolder || holder instanceof NoGambleInventoryHolder) {
             event.setCancelled(true);
         }
     }

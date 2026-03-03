@@ -10,7 +10,9 @@ import dev.justteam.justCrates.key.KeyService;
 import dev.justteam.justCrates.key.VirtualKeyService;
 import dev.justteam.justCrates.listener.CrateListener;
 import dev.justteam.justCrates.listener.GuiListener;
+import dev.justteam.justCrates.placeholder.JustCratesExpansion;
 import dev.justteam.justCrates.provider.ProviderRegistry;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class JustCrates extends JavaPlugin {
@@ -33,6 +35,7 @@ public final class JustCrates extends JavaPlugin {
         this.virtualKeyService = new VirtualKeyService(this, paths, keyService);
         this.crateService = new CrateService(this, providerRegistry, paths, keyService, virtualKeyService);
         this.blockCrateService = new BlockCrateService(this, paths, crateService);
+        this.crateService.setBlockCrateService(blockCrateService);
         this.editorService = new EditorService(this, paths, crateService, keyService, blockCrateService);
 
         this.keyService.loadAll();
@@ -49,6 +52,11 @@ public final class JustCrates extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new CrateListener(this), this);
         getServer().getPluginManager().registerEvents(new GuiListener(this, virtualKeyService), this);
         getServer().getPluginManager().registerEvents(new EditorListener(editorService), this);
+
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new JustCratesExpansion(this, crateService, virtualKeyService).register();
+            getLogger().info("PlaceholderAPI expansion registered.");
+        }
 
         getLogger().info("JustCrates has been enabled!");
     }

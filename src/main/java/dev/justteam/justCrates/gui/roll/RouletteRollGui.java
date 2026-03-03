@@ -33,7 +33,8 @@ public final class RouletteRollGui {
         RollDefinition roll = crate.getRollDefinition();
         String title = Text.color(roll.getTitle());
 
-        Inventory inv = Bukkit.createInventory(new RollInventoryHolder(), 54, title);
+        RollInventoryHolder holder = new RollInventoryHolder();
+        Inventory inv = Bukkit.createInventory(holder, 54, title);
         ItemStack dark = pane(Material.BLACK_STAINED_GLASS_PANE);
         for (int i = 0; i < 54; i++) {
             inv.setItem(i, dark);
@@ -97,6 +98,7 @@ public final class RouletteRollGui {
                     }
                     player.updateInventory();
                     playRewardSound(plugin, player);
+                    holder.setFinished(true);
                     cancel();
                     Bukkit.getScheduler().runTaskLater(plugin, player::closeInventory, 40L);
                 }

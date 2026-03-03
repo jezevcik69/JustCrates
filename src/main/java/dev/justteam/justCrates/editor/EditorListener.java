@@ -29,11 +29,34 @@ public final class EditorListener implements Listener {
         if (!(inv.getHolder() instanceof EditorMenuHolder holder)) {
             return;
         }
-        event.setCancelled(true);
-        ItemStack clicked = event.getCurrentItem();
+
         if (!(event.getWhoClicked() instanceof Player player)) {
+            event.setCancelled(true);
             return;
         }
+
+        // Check if player is in key icon mode and clicked their own inventory
+        if (editorService.isInKeyIconMode(player) && event.getRawSlot() >= inv.getSize()) {
+            event.setCancelled(true);
+            ItemStack clicked = event.getCurrentItem();
+            if (clicked != null && !clicked.getType().isAir()) {
+                editorService.handleKeyIconClick(player, clicked);
+            }
+            return;
+        }
+
+        // Check if player is in reward item mode and clicked their own inventory
+        if (editorService.isInRewardItemMode(player) && event.getRawSlot() >= inv.getSize()) {
+            event.setCancelled(true);
+            ItemStack clicked = event.getCurrentItem();
+            if (clicked != null && !clicked.getType().isAir()) {
+                editorService.handleRewardItemClick(player, clicked);
+            }
+            return;
+        }
+
+        event.setCancelled(true);
+        ItemStack clicked = event.getCurrentItem();
         ItemStack cursor = event.getCursor();
         int rawSlot = event.getRawSlot();
         boolean rightClick = event.isRightClick();

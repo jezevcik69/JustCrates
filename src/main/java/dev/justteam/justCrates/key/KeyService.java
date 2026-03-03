@@ -216,6 +216,17 @@ public final class KeyService {
         }
     }
 
+    public boolean deleteKey(String id) {
+        if (id == null || id.isBlank()) {
+            return false;
+        }
+        File file = new File(paths.getKeysFolder(), id.toLowerCase(Locale.ROOT) + ".yml");
+        if (!file.exists()) {
+            return false;
+        }
+        return file.delete();
+    }
+
     public boolean updateKeyVirtualMode(String id, boolean virtual) {
         if (id == null || id.isBlank()) {
             return false;

@@ -25,7 +25,8 @@ public final class CsgoRollGui {
         RollDefinition roll = crate.getRollDefinition();
         String title = Text.color(roll.getTitle());
 
-        Inventory inv = Bukkit.createInventory(new RollInventoryHolder(), 27, title);
+        RollInventoryHolder holder = new RollInventoryHolder();
+        Inventory inv = Bukkit.createInventory(holder, 27, title);
         ItemStack dark = pane(Material.BLUE_STAINED_GLASS_PANE);
         ItemStack accent = pane(Material.LIGHT_BLUE_STAINED_GLASS_PANE);
         ItemStack corner = pane(Material.CYAN_STAINED_GLASS_PANE);
@@ -98,6 +99,7 @@ public final class CsgoRollGui {
                     }
                     player.updateInventory();
                     playRewardSound(plugin, player);
+                    holder.setFinished(true);
                     cancel();
                     Bukkit.getScheduler().runTaskLater(plugin, player::closeInventory, 40L);
                 }

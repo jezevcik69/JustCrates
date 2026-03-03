@@ -9,6 +9,7 @@ softdepend:
   - ItemsAdder
   - Nexo
   - ModelEngine
+  - PlaceholderAPI
 
 commands:
   justcrates:
