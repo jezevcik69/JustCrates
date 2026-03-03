@@ -31,7 +31,7 @@ public final class Text {
     public static String chat(String input) {
         String resolved = input == null ? "" : Messages.resolveLiteral(input);
         String content = toSmallCaps(resolved);
-        return color(prefix + " &8» &f" + content);
+        return color(prefix + content);
     }
 
     public static String toSmallCaps(String input) {
