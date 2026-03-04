@@ -36,7 +36,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class EditorService {
-    private static final Set<String> STARTER_IDS = Set.of("starter", "starter_key");
 
     private final JavaPlugin plugin;
     private final PluginPaths paths;
@@ -122,10 +121,6 @@ public final class EditorService {
         Bukkit.getScheduler().runTaskLater(plugin, () -> openKeyEditor(player, keyId), 1L);
     }
 
-    private boolean isStarter(String id) {
-        return id != null && STARTER_IDS.contains(id.toLowerCase(Locale.ROOT));
-    }
-
     public void openMainMenu(Player player) {
         Inventory inv = Bukkit.createInventory(new EditorMenuHolder(EditorMenuType.MAIN, null), 27,
                 ui("&8JustCrates • Editor"));
@@ -142,7 +137,7 @@ public final class EditorService {
         Inventory inv = Bukkit.createInventory(new EditorMenuHolder(EditorMenuType.CRATES, null), 54,
                 ui("&8Crates • Manager"));
         fillBorder(inv);
-        inv.setItem(49, actionItem(Material.LIME_CONCRETE, "&aCreate Crate", "create_crate",
+        inv.setItem(49, actionItem(Material.LIME_DYE, "&aCreate Crate", "create_crate",
                 "&7Create new crate by ID"));
         inv.setItem(53, actionItem(Material.ARROW, "&7Back", "back", "&7Return to editor"));
 
@@ -179,7 +174,7 @@ public final class EditorService {
         Inventory inv = Bukkit.createInventory(new EditorMenuHolder(EditorMenuType.KEYS, null), 54,
                 ui("&8Keys • Manager"));
         fillBorder(inv);
-        inv.setItem(49, actionItem(Material.LIME_CONCRETE, "&aCreate Key", "create_key",
+        inv.setItem(49, actionItem(Material.LIME_DYE, "&aCreate Key", "create_key",
                 "&7Create key by ID", "&7No item in hand required"));
         inv.setItem(53, actionItem(Material.ARROW, "&7Back", "back", "&7Return to editor"));
 
@@ -215,8 +210,6 @@ public final class EditorService {
             return;
         }
 
-        boolean starter = isStarter(keyId);
-
         Inventory inv = Bukkit.createInventory(new EditorMenuHolder(EditorMenuType.KEY_EDIT, keyId), 27,
                 ui("&8Key: " + keyId));
         fillBorder(inv);
@@ -232,27 +225,29 @@ public final class EditorService {
             lore.add(ui("&7ID: &f" + keyId));
             lore.add(ui("&7Mode: &f" + (key.isVirtual() ? "Virtual" : "Physical")));
             lore.add(ui("&7Current key icon"));
+            lore.add(ui("&eLeft click: rename key"));
+            lore.add(ui("&aRight click: edit key lines"));
             previewMeta.setLore(lore);
+            previewMeta.getPersistentDataContainer().set(actionKey, PersistentDataType.STRING, "rename_key");
             preview.setItemMeta(previewMeta);
         }
 
         inv.setItem(13, preview);
 
-        if (!starter) {
-            inv.setItem(12, actionItem(Material.ENDER_EYE, "&dToggle Virtual", "toggle_virtual_key",
-                    "&7Current: &f" + (key.isVirtual() ? "Virtual" : "Physical"),
-                    "&7Virtual key is stored as balance",
-                    "&7and can be used in crate key checks"));
-            inv.setItem(11, actionItem(Material.ITEM_FRAME, "&bSet Icon", "set_key_icon",
-                    "&7Click this, then click any",
-                    "&7item in your inventory to",
-                    "&7set it as the key icon"));
-            inv.setItem(14, actionItem(Material.TNT, "&cDelete Key", "delete_key",
-                    "&7Permanently deletes this key"));
-        }
+        inv.setItem(12, actionItem(Material.ENDER_EYE, "&dToggle Virtual", "toggle_virtual_key",
+                "&7Current: &f" + (key.isVirtual() ? "Virtual" : "Physical"),
+                "&7Virtual key is stored as balance",
+                "&7and can be used in crate key checks"));
+        inv.setItem(11, actionItem(Material.ITEM_FRAME, "&bSet Icon", "set_key_icon",
+                "&7Click this, then click any",
+                "&7item in your inventory to",
+                "&7set it as the key icon"));
 
-        inv.setItem(15, actionItem(Material.EMERALD, "&aGet 1x Key", "give_key",
+        inv.setItem(14, actionItem(Material.EMERALD, "&aGet 1x Key", "give_key",
                 "&7Adds this key to your inventory"));
+        inv.setItem(26, actionItem(Material.BARRIER, "&cDelete Key", "delete_key",
+                "&7Permanently deletes this key",
+                "&eClick to confirm in chat"));
         inv.setItem(22, actionItem(Material.ARROW, "&7Back", "back_keys", "&7Back to keys"));
 
         player.openInventory(inv);
@@ -265,7 +260,6 @@ public final class EditorService {
             return;
         }
 
-        boolean starter = isStarter(crateId);
 
         Inventory inv = Bukkit.createInventory(new EditorMenuHolder(EditorMenuType.CRATE_EDIT, crateId), 45,
                 ui("&8Crate Editor • " + crateId));
@@ -286,57 +280,55 @@ public final class EditorService {
             infoMeta.setLore(lore);
             info.setItemMeta(infoMeta);
         }
-        inv.setItem(4, info);
+        inv.setItem(22, info);
 
-        inv.setItem(20, actionItem(Material.BARRIER, "&cUnbind Block", "unbind_block",
+        inv.setItem(10, actionItem(Material.TNT, "&cUnbind Block", "unbind_block",
                 "&7Click a block", "&7to unbind"));
+        inv.setItem(11, actionItem(Material.CHAIN, "&aBind Block", "bind_block",
+                "&7Click a block", "&7to bind"));
 
         String currentKeyName = "&cNone";
         if (crate.getKeyId() != null && !crate.getKeyId().isBlank()) {
             KeyDefinition currentKey = keyService.getKey(crate.getKeyId());
             currentKeyName = currentKey != null ? currentKey.getName() : crate.getKeyId();
         }
-        inv.setItem(21, actionItem(Material.TRIPWIRE_HOOK, "&eSelect Key", "select_key",
+        inv.setItem(12, actionItem(Material.TRIPWIRE_HOOK, "&eSelect Key", "select_key",
                 "&7Current: &f" + currentKeyName,
                 "&7Click to select a key"));
 
-        inv.setItem(22, actionItem(Material.CHEST_MINECART, "&bRewards", "rewards",
+        inv.setItem(14, actionItem(Material.CHEST_MINECART, "&bRewards", "rewards",
                 "&7Add and edit"));
-        inv.setItem(23, actionItem(Material.HOPPER, "&dRoll Type", "roll_type",
+        inv.setItem(15, actionItem(Material.HOPPER, "&dRoll Type", "roll_type",
                 "&7Current: &f" + crate.getRollDefinition().getRollType().name(),
                 "&7Click to change animation"));
-
-        List<String> hologramLines = crate.getHologramLines() == null ? List.of() : crate.getHologramLines();
-        String hologramPreview = hologramLines.isEmpty() ? "Disabled" : hologramLines.get(0);
-        inv.setItem(29, actionItem(Material.CHAIN, "&aBind Block", "bind_block",
-                "&7Click a block", "&7to bind"));
-        inv.setItem(30, actionItem(Material.NAME_TAG, "&bSet Hologram", "set_hologram",
-                "&7Lines: &f" + hologramLines.size(),
-                "&7Top: &f" + hologramPreview,
-                "&7Click to edit lines"));
-        inv.setItem(31, actionItem(Material.BLAZE_POWDER, "&6Set Particle", "set_particle",
+        inv.setItem(16, actionItem(Material.BLAZE_POWDER, "&6Set Particle", "set_particle",
                 "&7Current: &f"
                         + (crate.getParticle() == null || crate.getParticle().isBlank() ? "None" : crate.getParticle()),
                 "&7Click to set particle"));
 
-        if (!starter) {
-            inv.setItem(32, actionItem(Material.TNT, "&cDelete Crate", "delete_crate",
-                    "&7Permanently deletes this crate",
-                    "&7and unbinds all related blocks",
-                    "&eClick to confirm in chat"));
-        }
+        List<String> hologramLines = crate.getHologramLines() == null ? List.of() : crate.getHologramLines();
+        String hologramPreview = hologramLines.isEmpty() ? "Disabled" : hologramLines.get(0);
+        inv.setItem(28, actionItem(Material.NAME_TAG, "&bSet Hologram", "set_hologram",
+                "&7Lines: &f" + hologramLines.size(),
+                "&7Top: &f" + hologramPreview,
+                "&7Click to edit lines"));
+
+        inv.setItem(44, actionItem(Material.BARRIER, "&cDelete Crate", "delete_crate",
+                "&7Permanently deletes this crate",
+                "&7and unbinds all related blocks",
+                "&eClick to confirm in chat"));
 
         if (crate.getKeyId() != null && !crate.getKeyId().isBlank()) {
-            inv.setItem(24, actionItem(Material.SHEARS, "&cUnbind Key", "unbind_key",
+            inv.setItem(13, actionItem(Material.SHEARS, "&cUnbind Key", "unbind_key",
                     "&7Remove key requirement",
                     "&7from this crate"));
         }
 
-        inv.setItem(33, actionItem(Material.CLOCK, "&eCooldown", "set_cooldown",
+        inv.setItem(30, actionItem(Material.CLOCK, "&eCooldown", "set_cooldown",
                 "&7Current: &f" + (crate.getCooldown() > 0 ? crate.getCooldown() + "s" : "None"),
                 "&7Set open cooldown in seconds"));
 
-        inv.setItem(34, actionItem(Material.IRON_BARS, "&6Permission", "set_permission",
+        inv.setItem(32, actionItem(Material.IRON_BARS, "&6Permission", "set_permission",
                 "&7Current: &f"
                         + (crate.getPermission() == null || crate.getPermission().isBlank() ? "None" : crate.getPermission()),
                 "&7Set required permission"));
@@ -465,7 +457,7 @@ public final class EditorService {
             case MAIN -> handleMainClick(player, action);
             case CRATES -> handleCratesClick(player, action, data);
             case KEYS -> handleKeysClick(player, action, data, rightClick);
-            case KEY_EDIT -> handleKeyEditClick(player, holder.getCrateId(), action, cursor, rawSlot);
+            case KEY_EDIT -> handleKeyEditClick(player, holder.getCrateId(), action, cursor, rawSlot, rightClick);
             case CRATE_EDIT -> handleCrateEditClick(player, holder.getCrateId(), action);
             case REWARDS -> handleRewardsClick(player, holder.getCrateId(), action, data, rightClick);
             case KEY_SELECT -> handleKeySelectClick(player, holder.getCrateId(), action, data);
@@ -484,6 +476,27 @@ public final class EditorService {
         player.closeInventory();
         player.sendMessage(Text.chat("&eEnter key ID (e.g. &fstarter_key& e)."));
         player.sendMessage(Text.chat("&7Icon can be set in GUI editor after creation."));
+    }
+
+    public void startSetKeyName(Player player, String keyId) {
+        if (keyId == null) {
+            return;
+        }
+        pendingInput.put(player.getUniqueId(), new EditorInput(EditorInputType.SET_KEY_NAME, keyId, null));
+        player.closeInventory();
+        player.sendMessage(Text.chat("&eEnter new key name (supports & colors)."));
+        player.sendMessage(Text.chat("&7Type &fnone &7to reset to default."));
+    }
+
+    public void startSetKeyLore(Player player, String keyId) {
+        if (keyId == null) {
+            return;
+        }
+        pendingInput.put(player.getUniqueId(), new EditorInput(EditorInputType.SET_KEY_LORE, keyId, null));
+        player.closeInventory();
+        player.sendMessage(Text.chat("&eEnter key lines separated by &f|&e."));
+        player.sendMessage(Text.chat("&7Example: &f&7Opens starter crate|&eRare rewards"));
+        player.sendMessage(Text.chat("&7Type &fnone &7to clear all lines."));
     }
 
     public void startSetRewardWeight(Player player, String crateId, int rewardIndex) {
@@ -632,6 +645,8 @@ public final class EditorService {
         switch (input.getType()) {
             case CREATE_CRATE -> handleCreateCrateInput(player, message);
             case CREATE_KEY -> handleCreateKeyInput(player, message);
+            case SET_KEY_NAME -> handleSetKeyNameInput(player, message, input.getCrateId());
+            case SET_KEY_LORE -> handleSetKeyLoreInput(player, message, input.getCrateId());
             case ADD_COMMAND_REWARD -> handleAddCommandRewardInput(player, message, input.getCrateId());
             case EDIT_COMMAND_REWARD_MENU -> handleEditCommandRewardMenuInput(player, message, input.getCrateId(),
                     input.getRewardIndex());
@@ -708,8 +723,17 @@ public final class EditorService {
         }
     }
 
-    private void handleKeyEditClick(Player player, String keyId, String action, ItemStack cursor, int rawSlot) {
+    private void handleKeyEditClick(Player player, String keyId, String action, ItemStack cursor, int rawSlot,
+            boolean rightClick) {
         if (keyId == null) {
+            return;
+        }
+        if ("rename_key".equals(action) && (cursor == null || cursor.getType().isAir())) {
+            if (rightClick) {
+                startSetKeyLore(player, keyId);
+            } else {
+                startSetKeyName(player, keyId);
+            }
             return;
         }
         if ("back_keys".equals(action)) {
@@ -723,10 +747,6 @@ public final class EditorService {
             return;
         }
         if ("toggle_virtual_key".equals(action)) {
-            if (isStarter(keyId)) {
-                player.sendMessage(Text.chat("&cCannot edit starter items."));
-                return;
-            }
             KeyDefinition key = keyService.getKey(keyId);
             if (key == null) {
                 player.sendMessage(Text.chat("&cKey does not exist."));
@@ -743,19 +763,11 @@ public final class EditorService {
             return;
         }
         if ("set_key_icon".equals(action)) {
-            if (isStarter(keyId)) {
-                player.sendMessage(Text.chat("&cCannot edit starter items."));
-                return;
-            }
             keyIconMode.put(player.getUniqueId(), keyId);
             player.sendMessage(Text.chat("&aNow click any item in your inventory to set it as the key icon."));
             return;
         }
         if ("delete_key".equals(action)) {
-            if (isStarter(keyId)) {
-                player.sendMessage(Text.chat("&cCannot delete starter items."));
-                return;
-            }
             startDeleteKey(player, keyId);
             return;
         }
@@ -765,10 +777,6 @@ public final class EditorService {
             }
         }
         if (rawSlot == 13 && cursor != null && !cursor.getType().isAir()) {
-            if (isStarter(keyId)) {
-                player.sendMessage(Text.chat("&cCannot edit starter items."));
-                return;
-            }
             if (!saveKeyItemFromCursor(player, keyId, cursor)) {
                 player.sendMessage(Text.chat("&cFailed to update key icon."));
                 return;
@@ -791,13 +799,7 @@ public final class EditorService {
             case "set_particle" -> startSetCrateParticle(player, crateId);
             case "set_hologram" -> startSetCrateHologram(player, crateId);
             case "roll_type" -> openRollTypeMenu(player, crateId);
-            case "delete_crate" -> {
-                if (isStarter(crateId)) {
-                    player.sendMessage(Text.chat("&cCannot delete starter items."));
-                } else {
-                    startDeleteCrate(player, crateId);
-                }
-            }
+            case "delete_crate" -> startDeleteCrate(player, crateId);
             case "unbind_key" -> {
                 setCrateKey(crateId, "");
                 crateService.loadAll();
@@ -955,6 +957,58 @@ public final class EditorService {
         } else {
             player.sendMessage(Text.chat("&cFailed to create key. ID may already exist."));
         }
+    }
+
+    private void handleSetKeyNameInput(Player player, String message, String keyId) {
+        if (keyId == null) {
+            return;
+        }
+
+        String keyName = message == null ? "" : message.trim();
+        if (keyName.equalsIgnoreCase("none")) {
+            keyName = "&e" + keyId + " key";
+        }
+        if (keyName.isBlank()) {
+            player.sendMessage(Text.chat("&cKey name cannot be empty."));
+            return;
+        }
+
+        if (!keyService.updateKeyDisplayName(keyId, keyName)) {
+            player.sendMessage(Text.chat("&cFailed to update key name."));
+            return;
+        }
+
+        keyService.loadAll();
+        player.sendMessage(Text.chat("&aKey name updated."));
+        openKeyEditor(player, keyId);
+    }
+
+    private void handleSetKeyLoreInput(Player player, String message, String keyId) {
+        if (keyId == null) {
+            return;
+        }
+
+        String raw = message == null ? "" : message.trim();
+        List<String> lore = new ArrayList<>();
+
+        if (!raw.equalsIgnoreCase("none") && !raw.isBlank()) {
+            String[] split = raw.split("\\|");
+            for (String line : split) {
+                String trimmed = line.trim();
+                if (!trimmed.isBlank()) {
+                    lore.add(trimmed);
+                }
+            }
+        }
+
+        if (!keyService.updateKeyLore(keyId, lore)) {
+            player.sendMessage(Text.chat("&cFailed to update key lines."));
+            return;
+        }
+
+        keyService.loadAll();
+        player.sendMessage(Text.chat(lore.isEmpty() ? "&aKey lines cleared." : "&aKey lines updated."));
+        openKeyEditor(player, keyId);
     }
 
     private void handleSetCrateParticleInput(Player player, String message, String crateId) {

@@ -3,6 +3,8 @@ package dev.justteam.justCrates.editor;
 public enum EditorInputType {
     CREATE_CRATE,
     CREATE_KEY,
+    SET_KEY_NAME,
+    SET_KEY_LORE,
     ADD_COMMAND_REWARD,
     EDIT_COMMAND_REWARD_MENU,
     SET_COMMAND_REWARD_NAME,

@@ -216,6 +216,75 @@ public final class KeyService {
         }
     }
 
+    public boolean updateKeyDisplayName(String id, String displayName) {
+        if (id == null || id.isBlank() || displayName == null || displayName.isBlank()) {
+            return false;
+        }
+
+        File file = new File(paths.getKeysFolder(), id.toLowerCase(Locale.ROOT) + ".yml");
+        if (!file.exists()) {
+            return false;
+        }
+
+        YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+        cfg.set("display.name", displayName);
+
+        ItemStack itemStack = cfg.getItemStack("itemstack");
+        if (itemStack != null) {
+            ItemMeta meta = itemStack.getItemMeta();
+            if (meta != null) {
+                meta.setDisplayName(Text.color(displayName));
+                itemStack.setItemMeta(meta);
+                cfg.set("itemstack", itemStack);
+            }
+        }
+
+        try {
+            cfg.save(file);
+            return true;
+        } catch (IOException e) {
+            plugin.getLogger().severe("Failed to update key name: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean updateKeyLore(String id, List<String> loreLines) {
+        if (id == null || id.isBlank()) {
+            return false;
+        }
+
+        File file = new File(paths.getKeysFolder(), id.toLowerCase(Locale.ROOT) + ".yml");
+        if (!file.exists()) {
+            return false;
+        }
+
+        List<String> lore = loreLines == null ? new ArrayList<>() : new ArrayList<>(loreLines);
+        YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+        cfg.set("display.lore", lore);
+
+        ItemStack itemStack = cfg.getItemStack("itemstack");
+        if (itemStack != null) {
+            ItemMeta meta = itemStack.getItemMeta();
+            if (meta != null) {
+                if (lore.isEmpty()) {
+                    meta.setLore(null);
+                } else {
+                    meta.setLore(lore.stream().map(Text::color).toList());
+                }
+                itemStack.setItemMeta(meta);
+                cfg.set("itemstack", itemStack);
+            }
+        }
+
+        try {
+            cfg.save(file);
+            return true;
+        } catch (IOException e) {
+            plugin.getLogger().severe("Failed to update key lore: " + e.getMessage());
+            return false;
+        }
+    }
+
     public boolean deleteKey(String id) {
         if (id == null || id.isBlank()) {
             return false;
