@@ -274,6 +274,8 @@ public final class EditorService {
             lore.add(ui("&7Type: &f" + crate.getType().name()));
             lore.add(ui("&7Key: &f"
                     + (crate.getKeyId() == null || crate.getKeyId().isBlank() ? "&cNone" : crate.getKeyId())));
+            lore.add(ui("&7Open Sound: &f"
+                    + (crate.getOpenSound() == null || crate.getOpenSound().isBlank() ? "&cNone" : crate.getOpenSound())));
             lore.add(ui("&7Cooldown: &f" + (crate.getCooldown() > 0 ? crate.getCooldown() + "s" : "None")));
             lore.add(ui("&7Permission: &f"
                     + (crate.getPermission() == null || crate.getPermission().isBlank() ? "&cNone" : crate.getPermission())));
@@ -305,6 +307,10 @@ public final class EditorService {
                 "&7Current: &f"
                         + (crate.getParticle() == null || crate.getParticle().isBlank() ? "None" : crate.getParticle()),
                 "&7Click to set particle"));
+        inv.setItem(31, actionItem(Material.NOTE_BLOCK, "&dOpen Sound", "set_open_sound",
+                "&7Current: &f"
+                        + (crate.getOpenSound() == null || crate.getOpenSound().isBlank() ? "None" : crate.getOpenSound()),
+                "&7Play sound when crate opens"));
 
         List<String> hologramLines = crate.getHologramLines() == null ? List.of() : crate.getHologramLines();
         String hologramPreview = hologramLines.isEmpty() ? "Disabled" : hologramLines.get(0);
@@ -550,6 +556,39 @@ public final class EditorService {
         player.sendMessage(Text.chat("&7Or type any other particle name manually. Type &cnone&7 to clear."));
     }
 
+    public void startSetOpenSound(Player player, String crateId) {
+        pendingInput.put(player.getUniqueId(), new EditorInput(EditorInputType.SET_CRATE_OPEN_SOUND, crateId, null));
+        player.closeInventory();
+        player.sendMessage(Messages.get("enter-open-sound"));
+        player.sendMessage(Messages.get("open-sound-click-info"));
+
+        String[] popularSounds = {
+                "BLOCK_CHEST_OPEN", "BLOCK_ENDER_CHEST_OPEN", "BLOCK_BARREL_OPEN", "ENTITY_PLAYER_LEVELUP",
+                "ENTITY_EXPERIENCE_ORB_PICKUP", "ENTITY_FIREWORK_ROCKET_BLAST", "BLOCK_AMETHYST_BLOCK_CHIME",
+                "BLOCK_NOTE_BLOCK_PLING", "BLOCK_BEACON_ACTIVATE", "ITEM_TOTEM_USE", "UI_TOAST_CHALLENGE_COMPLETE",
+                "NONE"
+        };
+
+        ComponentBuilder builder = new ComponentBuilder("");
+        for (int i = 0; i < popularSounds.length; i++) {
+            String sound = popularSounds[i];
+            TextComponent comp = new TextComponent(sound);
+            comp.setColor("NONE".equals(sound) ? ChatColor.RED : ChatColor.LIGHT_PURPLE);
+            comp.setClickEvent(new ClickEvent(
+                    ClickEvent.Action.RUN_COMMAND, "/justcrates _editchat " + sound));
+            comp.setHoverEvent(new HoverEvent(
+                    HoverEvent.Action.SHOW_TEXT,
+                    new ComponentBuilder(Text.color("&aClick to set to &f" + sound)).create()));
+            builder.append(comp);
+            if (i < popularSounds.length - 1) {
+                builder.append(new TextComponent(" | "))
+                        .color(ChatColor.GRAY);
+            }
+        }
+        player.spigot().sendMessage(builder.create());
+        player.sendMessage(Messages.get("open-sound-type-info"));
+    }
+
     public void startSetCrateHologram(Player player, String crateId) {
         pendingInput.put(player.getUniqueId(), new EditorInput(EditorInputType.SET_CRATE_HOLOGRAM, crateId, null));
         hologramAwaitingLineInput.remove(player.getUniqueId());
@@ -663,6 +702,7 @@ public final class EditorService {
             case SET_REWARD_WEIGHT ->
                 handleSetRewardWeightInput(player, message, input.getCrateId(), input.getRewardIndex());
             case SET_CRATE_PARTICLE -> handleSetCrateParticleInput(player, message, input.getCrateId());
+            case SET_CRATE_OPEN_SOUND -> handleSetCrateOpenSoundInput(player, message, input.getCrateId());
             case SET_CRATE_HOLOGRAM -> handleSetCrateHologramInput(player, message, input.getCrateId());
             case DELETE_CRATE_CONFIRM -> handleDeleteCrateConfirmInput(player, message, input.getCrateId());
             case DELETE_KEY_CONFIRM -> handleDeleteKeyConfirmInput(player, message, input.getCrateId());
@@ -797,6 +837,7 @@ public final class EditorService {
             case "select_key" -> openKeySelectMenu(player, crateId);
             case "rewards" -> openRewardsMenu(player, crateId);
             case "set_particle" -> startSetCrateParticle(player, crateId);
+            case "set_open_sound" -> startSetOpenSound(player, crateId);
             case "set_hologram" -> startSetCrateHologram(player, crateId);
             case "roll_type" -> openRollTypeMenu(player, crateId);
             case "delete_crate" -> startDeleteCrate(player, crateId);
@@ -928,6 +969,7 @@ public final class EditorService {
         cfg.set("roll.title", "&aCrate " + id);
         cfg.set("roll.duration-ticks", 60);
         cfg.set("roll.tick-interval", 2);
+        cfg.set("sounds.open", "");
         cfg.set("cooldown", 0);
         cfg.set("permission", "");
         cfg.set("rewards", new ArrayList<>());
@@ -1044,6 +1086,43 @@ public final class EditorService {
         } catch (IOException e) {
             plugin.getLogger().severe("Failed to save crate particle: " + e.getMessage());
             player.sendMessage(Text.chat("&cFailed to save particle."));
+        }
+    }
+
+    private void handleSetCrateOpenSoundInput(Player player, String message, String crateId) {
+        if (crateId == null) {
+            return;
+        }
+
+        String openSound = message == null ? "" : message.trim();
+        if (openSound.equalsIgnoreCase("none") || openSound.isEmpty()) {
+            openSound = "";
+        } else {
+            try {
+                org.bukkit.Sound.valueOf(openSound.toUpperCase(Locale.ROOT).replace('.', '_'));
+                openSound = openSound.toUpperCase(Locale.ROOT).replace('.', '_');
+            } catch (IllegalArgumentException e) {
+                player.sendMessage(Messages.get("open-sound-invalid"));
+                return;
+            }
+        }
+
+        File file = resolveCrateFile(crateId);
+        if (file == null || !file.exists()) {
+            player.sendMessage(Text.chat("&cCrate file not found."));
+            return;
+        }
+
+        YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+        cfg.set("sounds.open", openSound);
+        try {
+            cfg.save(file);
+            crateService.loadAll();
+            player.sendMessage(Messages.get("open-sound-saved"));
+            openCrateEditor(player, crateId);
+        } catch (IOException e) {
+            plugin.getLogger().severe("Failed to save crate open sound: " + e.getMessage());
+            player.sendMessage(Messages.get("open-sound-save-failed"));
         }
     }
 

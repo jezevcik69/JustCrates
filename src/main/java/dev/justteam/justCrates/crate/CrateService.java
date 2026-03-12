@@ -14,6 +14,7 @@ import dev.justteam.justCrates.reward.RewardType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -68,6 +69,7 @@ public final class CrateService {
             String name = cfg.getString("display.name", "&aCrate " + id);
             List<String> lore = cfg.getStringList("display.lore");
             String particle = cfg.getString("display.particle", "");
+            String openSound = cfg.getString("sounds.open", "").trim();
             List<String> hologramLines = loadHologramLines(id, cfg);
             int maxLines = Math.max(1, plugin.getConfig().getInt("hologram.max-lines", 6));
             if (hologramLines.size() > maxLines) {
@@ -138,6 +140,7 @@ public final class CrateService {
             }
 
             CrateDefinition crate = new CrateDefinition(id, type, name, lore, keyId, roll, rewards, particle,
+                    openSound,
                     hologramLines, cooldown, permission);
             registry.register(crate);
         }
@@ -151,6 +154,53 @@ public final class CrateService {
 
     public List<CrateDefinition> getCrates() {
         return new ArrayList<>(registry.all());
+    }
+
+    public long getRemainingCooldown(Player player, CrateDefinition crate) {
+        if (player == null || crate == null || crate.getCooldown() <= 0) {
+            return 0L;
+        }
+
+        Map<String, Long> playerCooldowns = cooldowns.get(player.getUniqueId());
+        if (playerCooldowns == null) {
+            return 0L;
+        }
+
+        Long lastUse = playerCooldowns.get(crate.getId());
+        if (lastUse == null) {
+            return 0L;
+        }
+
+        long elapsed = (System.currentTimeMillis() - lastUse) / 1000L;
+        long remaining = crate.getCooldown() - elapsed;
+        return Math.max(remaining, 0L);
+    }
+
+    public int getAvailableOpens(Player player, CrateDefinition crate) {
+        if (player == null || crate == null) {
+            return 0;
+        }
+
+        String keyId = crate.getKeyId();
+        if (keyId == null || keyId.isBlank() || virtualKeyService == null) {
+            return 0;
+        }
+
+        return virtualKeyService.getTotalKeys(player, keyId);
+    }
+
+    public boolean canOpen(Player player, CrateDefinition crate) {
+        if (player == null || crate == null || crate.getRewards().isEmpty()) {
+            return false;
+        }
+        if (crate.getPermission() != null && !crate.getPermission().isBlank() && !player.hasPermission(crate.getPermission())) {
+            return false;
+        }
+        if (getRemainingCooldown(player, crate) > 0) {
+            return false;
+        }
+        String keyId = crate.getKeyId();
+        return keyId == null || keyId.isBlank() || getAvailableOpens(player, crate) > 0;
     }
 
     public void openCrate(Player player, CrateDefinition crate, Block block) {
@@ -174,15 +224,10 @@ public final class CrateService {
         }
 
         if (crate.getCooldown() > 0) {
-            Map<String, Long> playerCooldowns = cooldowns.computeIfAbsent(player.getUniqueId(), k -> new HashMap<>());
-            Long lastUse = playerCooldowns.get(crate.getId());
-            if (lastUse != null) {
-                long elapsed = (System.currentTimeMillis() - lastUse) / 1000;
-                long remaining = crate.getCooldown() - elapsed;
-                if (remaining > 0) {
-                    player.sendMessage(Messages.get("crate-cooldown", "%time%", String.valueOf(remaining)));
-                    return;
-                }
+            long remaining = getRemainingCooldown(player, crate);
+            if (remaining > 0) {
+                player.sendMessage(Messages.get("crate-cooldown", "%time%", String.valueOf(remaining)));
+                return;
             }
         }
 
@@ -234,6 +279,7 @@ public final class CrateService {
                     .put(crate.getId(), System.currentTimeMillis());
         }
 
+        playOpenSound(player, crate);
         RollGuiFactory.open(plugin, player, crate, this, block, blockCrateService);
     }
 
@@ -319,6 +365,24 @@ public final class CrateService {
         }
         knockback.setY(0.65);
         player.setVelocity(knockback);
+    }
+
+    private void playOpenSound(Player player, CrateDefinition crate) {
+        Sound sound = parseSound(crate.getOpenSound());
+        if (sound != null) {
+            player.playSound(player.getLocation(), sound, 1.0f, 1.0f);
+        }
+    }
+
+    private Sound parseSound(String name) {
+        if (name == null || name.isBlank()) {
+            return null;
+        }
+        try {
+            return Sound.valueOf(name.trim().toUpperCase(Locale.ROOT).replace('.', '_'));
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
     }
 
     private List<String> getDefaultHologramLines() {

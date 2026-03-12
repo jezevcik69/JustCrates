@@ -1,7 +1,11 @@
 package dev.justteam.justCrates.crate;
 
+import dev.justteam.justCrates.JustCrates;
 import dev.justteam.justCrates.core.PluginPaths;
 import dev.justteam.justCrates.core.Text;
+import dev.justteam.justCrates.key.KeyDefinition;
+import dev.justteam.justCrates.key.VirtualKeyService;
+import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -9,6 +13,7 @@ import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -17,10 +22,12 @@ import java.io.IOException;
 import java.util.*;
 
 public final class BlockCrateService {
+    private static final double DEFAULT_VIEW_DISTANCE = 24.0D;
+
     private final JavaPlugin plugin;
     private final PluginPaths paths;
     private final Map<String, String> bindings = new HashMap<>();
-    private final Map<String, List<UUID>> hologramEntities = new HashMap<>();
+    private final Map<String, Map<UUID, List<UUID>>> hologramEntities = new HashMap<>();
     private final Set<String> suppressedHolograms = new HashSet<>();
     private final CrateService crateService;
     private BukkitTask particleTask;
@@ -199,8 +206,9 @@ public final class BlockCrateService {
                     double t = (millis - (i * 20)) / 1000.0;
                     double angle = t * Math.PI * 2 * 3.0;
                     double height = (t * 0.75) % 1.5;
-                    if (height < 0)
+                    if (height < 0) {
                         height += 1.5;
+                    }
 
                     double radius = 0.65;
                     double xOffset = radius * Math.cos(angle);
@@ -217,8 +225,10 @@ public final class BlockCrateService {
 
     private void refreshHologram(String key) {
         if (suppressedHolograms.contains(key)) {
+            removeHologram(key);
             return;
         }
+
         Location loc = deserialize(key);
         if (loc == null || loc.getWorld() == null) {
             removeHologram(key);
@@ -241,15 +251,45 @@ public final class BlockCrateService {
             return;
         }
 
-        List<String> lines = resolveHologramLines(crate);
-        if (lines.isEmpty()) {
+        List<Player> viewers = resolveViewers(loc);
+        if (viewers.isEmpty()) {
             removeHologram(key);
             return;
         }
 
-        List<ArmorStand> existing = getHologramStands(key);
+        Set<UUID> activeViewers = new HashSet<>();
+        for (Player viewer : viewers) {
+            activeViewers.add(viewer.getUniqueId());
+        }
+
+        Map<UUID, List<UUID>> viewerMap = hologramEntities.get(key);
+        if (viewerMap != null) {
+            List<UUID> staleViewers = new ArrayList<>();
+            for (UUID viewerId : viewerMap.keySet()) {
+                if (!activeViewers.contains(viewerId)) {
+                    staleViewers.add(viewerId);
+                }
+            }
+            for (UUID viewerId : staleViewers) {
+                removeHologram(key, viewerId);
+            }
+        }
+
+        for (Player viewer : viewers) {
+            refreshViewerHologram(key, loc, crate, viewer);
+        }
+    }
+
+    private void refreshViewerHologram(String key, Location crateLoc, CrateDefinition crate, Player viewer) {
+        List<String> lines = resolveHologramLines(crate, viewer);
+        if (lines.isEmpty()) {
+            removeHologram(key, viewer.getUniqueId());
+            return;
+        }
+
+        List<ArmorStand> existing = getHologramStands(key, viewer.getUniqueId());
         if (existing.size() != lines.size()) {
-            recreateHologram(key, loc, lines);
+            recreateHologram(key, viewer, crateLoc, lines);
             return;
         }
 
@@ -259,12 +299,15 @@ public final class BlockCrateService {
             if (!stand.getLocation().getChunk().isLoaded()) {
                 continue;
             }
+            applyViewerVisibility(stand, viewer);
+
             String line = Text.color(lines.get(i));
             if (!line.equals(stand.getCustomName())) {
                 stand.setCustomName(line);
                 changed = true;
             }
-            Location target = hologramLineLocation(loc, lines.size(), i);
+
+            Location target = hologramLineLocation(crateLoc, lines.size(), i);
             if (stand.getLocation().distanceSquared(target) > 0.0001D) {
                 stand.teleport(target);
                 changed = true;
@@ -272,16 +315,12 @@ public final class BlockCrateService {
         }
 
         if (changed) {
-            List<UUID> ids = new ArrayList<>();
-            for (ArmorStand stand : existing) {
-                ids.add(stand.getUniqueId());
-            }
-            hologramEntities.put(key, ids);
+            cacheViewerEntities(key, viewer.getUniqueId(), existing);
         }
     }
 
-    private void recreateHologram(String key, Location crateLoc, List<String> lines) {
-        removeHologram(key);
+    private void recreateHologram(String key, Player viewer, Location crateLoc, List<String> lines) {
+        removeHologram(key, viewer.getUniqueId());
         List<UUID> ids = new ArrayList<>();
         for (int i = 0; i < lines.size(); i++) {
             int lineIndex = i;
@@ -297,9 +336,54 @@ public final class BlockCrateService {
                 armorStand.setCustomNameVisible(true);
                 armorStand.setCustomName(Text.color(lines.get(lineIndex)));
             });
+            applyViewerVisibility(stand, viewer);
             ids.add(stand.getUniqueId());
         }
-        hologramEntities.put(key, ids);
+        hologramEntities.computeIfAbsent(key, ignored -> new HashMap<>()).put(viewer.getUniqueId(), ids);
+    }
+
+    private void cacheViewerEntities(String key, UUID viewerId, List<ArmorStand> stands) {
+        List<UUID> ids = new ArrayList<>();
+        for (ArmorStand stand : stands) {
+            ids.add(stand.getUniqueId());
+        }
+        hologramEntities.computeIfAbsent(key, ignored -> new HashMap<>()).put(viewerId, ids);
+    }
+
+    private void applyViewerVisibility(ArmorStand stand, Player viewer) {
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            if (online.getUniqueId().equals(viewer.getUniqueId())) {
+                online.showEntity(plugin, stand);
+            } else {
+                online.hideEntity(plugin, stand);
+            }
+        }
+    }
+
+    private List<Player> resolveViewers(Location crateLoc) {
+        World world = crateLoc.getWorld();
+        if (world == null) {
+            return List.of();
+        }
+
+        double maxDistanceSquared = Math.pow(getViewDistance(), 2);
+        Location center = crateLoc.clone().add(0.5, 0.5, 0.5);
+        List<Player> viewers = new ArrayList<>();
+        for (Player player : world.getPlayers()) {
+            if (!player.isOnline() || player.isDead()) {
+                continue;
+            }
+            if (player.getLocation().distanceSquared(center) > maxDistanceSquared) {
+                continue;
+            }
+            viewers.add(player);
+        }
+        return viewers;
+    }
+
+    private double getViewDistance() {
+        double configured = plugin.getConfig().getDouble("hologram.view-distance", DEFAULT_VIEW_DISTANCE);
+        return configured > 0 ? configured : DEFAULT_VIEW_DISTANCE;
     }
 
     private Location hologramLineLocation(Location crateLoc, int lineCount, int lineIndex) {
@@ -308,26 +392,78 @@ public final class BlockCrateService {
         return new Location(crateLoc.getWorld(), crateLoc.getX() + 0.5, y, crateLoc.getZ() + 0.5);
     }
 
-    private List<String> resolveHologramLines(CrateDefinition crate) {
+    private List<String> resolveHologramLines(CrateDefinition crate, Player viewer) {
         List<String> raw = crate.getHologramLines();
         if (raw == null || raw.isEmpty()) {
             return List.of();
         }
+
         List<String> lines = new ArrayList<>();
         for (String line : raw) {
             if (line == null || line.isBlank()) {
                 continue;
             }
-            lines.add(line.replace("%crate_name%", crate.getName()).replace("%crate_id%", crate.getId()));
+
+            String resolved = line
+                    .replace("%crate_name%", crate.getName())
+                    .replace("%crate_id%", crate.getId())
+                    .replace("%crate_key%", crate.getKeyId() == null ? "" : crate.getKeyId())
+                    .replace("%crate_key_id%", crate.getKeyId() == null ? "" : crate.getKeyId())
+                    .replace("%player_name%", viewer.getName());
+            resolved = applyKeyPlaceholders(resolved, crate, viewer);
+
+            if (isPlaceholderApiAvailable()) {
+                resolved = PlaceholderAPI.setPlaceholders(viewer, resolved);
+            }
+
+            lines.add(resolved);
         }
         return lines;
     }
 
-    private List<ArmorStand> getHologramStands(String key) {
-        List<UUID> ids = hologramEntities.get(key);
+    private String applyKeyPlaceholders(String line, CrateDefinition crate, Player viewer) {
+        if (!(plugin instanceof JustCrates justCrates)) {
+            return replaceKeyValues(line, "", 0, 0, 0);
+        }
+
+        String keyId = crate.getKeyId();
+        if (keyId == null || keyId.isBlank()) {
+            return replaceKeyValues(line, "", 0, 0, 0);
+        }
+
+        KeyDefinition key = justCrates.getKeyService().getKey(keyId);
+        VirtualKeyService virtualKeyService = justCrates.getVirtualKeyService();
+        int virtualKeys = virtualKeyService != null ? virtualKeyService.getKeys(viewer.getUniqueId(), keyId) : 0;
+        int physicalKeys = virtualKeyService != null ? virtualKeyService.getPhysicalKeys(viewer, keyId) : 0;
+        int totalKeys = virtualKeys + physicalKeys;
+
+        return replaceKeyValues(line, key != null ? key.getName() : keyId, totalKeys, virtualKeys, physicalKeys);
+    }
+
+    private String replaceKeyValues(String line, String keyName, int totalKeys, int virtualKeys, int physicalKeys) {
+        return line
+                .replace("%crate_key_name%", keyName)
+                .replace("%keys%", String.valueOf(totalKeys))
+                .replace("%keys_total%", String.valueOf(totalKeys))
+                .replace("%virtual_keys%", String.valueOf(virtualKeys))
+                .replace("%physical_keys%", String.valueOf(physicalKeys));
+    }
+
+    private boolean isPlaceholderApiAvailable() {
+        return Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null;
+    }
+
+    private List<ArmorStand> getHologramStands(String key, UUID viewerId) {
+        Map<UUID, List<UUID>> viewerMap = hologramEntities.get(key);
+        if (viewerMap == null || viewerMap.isEmpty()) {
+            return List.of();
+        }
+
+        List<UUID> ids = viewerMap.get(viewerId);
         if (ids == null || ids.isEmpty()) {
             return List.of();
         }
+
         List<ArmorStand> stands = new ArrayList<>();
         for (UUID id : ids) {
             Entity entity = Bukkit.getEntity(id);
@@ -338,16 +474,39 @@ public final class BlockCrateService {
         return stands;
     }
 
-    private void removeHologram(String key) {
-        List<UUID> ids = hologramEntities.remove(key);
+    private void removeHologram(String key, UUID viewerId) {
+        Map<UUID, List<UUID>> viewerMap = hologramEntities.get(key);
+        if (viewerMap == null) {
+            return;
+        }
+
+        List<UUID> ids = viewerMap.remove(viewerId);
         if (ids == null) {
             return;
         }
+
         for (UUID id : ids) {
             Entity entity = Bukkit.getEntity(id);
             if (entity != null && !entity.isDead()) {
                 entity.remove();
             }
+        }
+
+        if (viewerMap.isEmpty()) {
+            hologramEntities.remove(key);
+        }
+    }
+
+    private void removeHologram(String key) {
+        Map<UUID, List<UUID>> viewerMap = hologramEntities.get(key);
+        if (viewerMap == null || viewerMap.isEmpty()) {
+            hologramEntities.remove(key);
+            return;
+        }
+
+        List<UUID> viewerIds = new ArrayList<>(viewerMap.keySet());
+        for (UUID viewerId : viewerIds) {
+            removeHologram(key, viewerId);
         }
     }
 

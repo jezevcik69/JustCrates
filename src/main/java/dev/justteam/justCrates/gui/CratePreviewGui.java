@@ -3,6 +3,7 @@ package dev.justteam.justCrates.gui;
 import dev.justteam.justCrates.core.PreviewGuiSettings;
 import dev.justteam.justCrates.core.Text;
 import dev.justteam.justCrates.crate.CrateDefinition;
+import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -21,6 +22,9 @@ public final class CratePreviewGui {
         String title = settings.getTitle()
                 .replace("%crate%", crate.getName())
                 .replace("%crate_id%", crate.getId());
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            title = PlaceholderAPI.setPlaceholders(player, title);
+        }
 
         CratePreviewHolder holder = new CratePreviewHolder(crate.getId());
         Inventory inv = Bukkit.createInventory(holder, size, Text.color(Text.toSmallCaps(title)));

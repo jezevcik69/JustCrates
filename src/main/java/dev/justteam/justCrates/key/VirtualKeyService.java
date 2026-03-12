@@ -3,6 +3,7 @@ package dev.justteam.justCrates.key;
 import dev.justteam.justCrates.core.PluginPaths;
 import dev.justteam.justCrates.core.YamlFile;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -36,6 +37,28 @@ public final class VirtualKeyService {
 
     public int getKeys(UUID playerId, String keyId) {
         return yaml.getConfig().getInt(path(playerId, keyId), 0);
+    }
+
+    public int getPhysicalKeys(Player player, String keyId) {
+        if (player == null || keyId == null || keyId.isBlank()) {
+            return 0;
+        }
+        return countPhysicalKeys(player, keyId);
+    }
+
+    public int getTotalKeys(Player player, String keyId) {
+        if (player == null || keyId == null || keyId.isBlank()) {
+            return 0;
+        }
+        return countPhysicalKeys(player, keyId) + getKeys(player.getUniqueId(), keyId);
+    }
+
+    public int getPhysicalKeys(HumanEntity player, String keyId) {
+        return player instanceof Player onlinePlayer ? getPhysicalKeys(onlinePlayer, keyId) : 0;
+    }
+
+    public int getTotalKeys(HumanEntity player, String keyId) {
+        return player instanceof Player onlinePlayer ? getTotalKeys(onlinePlayer, keyId) : 0;
     }
 
     public void addKeys(UUID playerId, String keyId, int amount) {

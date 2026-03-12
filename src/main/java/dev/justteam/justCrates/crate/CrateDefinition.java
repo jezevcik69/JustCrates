@@ -13,11 +13,12 @@ public final class CrateDefinition {
     private final RollDefinition rollDefinition;
     private final List<RewardDefinition> rewards;
     private final String particle;
+    private final String openSound;
     private final List<String> hologramLines;
     private final int cooldown;
     private final String permission;
 
-    public CrateDefinition(String id, CrateType type, String name, List<String> lore, String keyId, RollDefinition rollDefinition, List<RewardDefinition> rewards, String particle, List<String> hologramLines, int cooldown, String permission) {
+    public CrateDefinition(String id, CrateType type, String name, List<String> lore, String keyId, RollDefinition rollDefinition, List<RewardDefinition> rewards, String particle, String openSound, List<String> hologramLines, int cooldown, String permission) {
         this.id = id;
         this.type = type;
         this.name = name;
@@ -26,6 +27,7 @@ public final class CrateDefinition {
         this.rollDefinition = rollDefinition;
         this.rewards = rewards;
         this.particle = particle;
+        this.openSound = openSound;
         this.hologramLines = hologramLines;
         this.cooldown = cooldown;
         this.permission = permission;
@@ -57,6 +59,10 @@ public final class CrateDefinition {
 
     public String getParticle() {
         return particle;
+    }
+
+    public String getOpenSound() {
+        return openSound;
     }
 
     public List<String> getHologramLines() {

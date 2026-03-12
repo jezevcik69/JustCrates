@@ -13,6 +13,8 @@ roll:
   title: "&aStarter Crate"
   duration-ticks: 60
   tick-interval: 2
+sounds:
+  open: "BLOCK_CHEST_OPEN"
 rewards:
   - type: "COMMAND"
     weight: 70

@@ -36,7 +36,11 @@ hologram:
   # Maximum amount of hologram lines allowed per crate
   max-lines: 6
 
+  # Player range in blocks where personal holograms are shown and placeholders are resolved
+  view-distance: 24
+
   # Fallback lines used when a crate does not define its own hologram text
   default-lines:
     - "&e%crate_name%"
+    - "&7Keys: &f%keys%"
     - "&7store: &fyour.store.com"

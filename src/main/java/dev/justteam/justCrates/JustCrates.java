@@ -13,6 +13,7 @@ import dev.justteam.justCrates.key.KeyService;
 import dev.justteam.justCrates.key.VirtualKeyService;
 import dev.justteam.justCrates.listener.CrateListener;
 import dev.justteam.justCrates.listener.GuiListener;
+import dev.justteam.justCrates.placeholder.ExcellentCratesCompatibilityExpansion;
 import dev.justteam.justCrates.placeholder.JustCratesExpansion;
 import dev.justteam.justCrates.provider.ProviderRegistry;
 import dev.justteam.justCrates.utils.VersionChecker;
@@ -64,6 +65,10 @@ public final class JustCrates extends JavaPlugin {
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new JustCratesExpansion(this, crateService, virtualKeyService).register();
             getLogger().info("PlaceholderAPI expansion registered.");
+            if (Bukkit.getPluginManager().getPlugin("ExcellentCrates") == null) {
+                new ExcellentCratesCompatibilityExpansion(this, crateService).register();
+                getLogger().info("ExcellentCrates compatibility expansion registered.");
+            }
         }
 
         new VersionChecker(this, "Jezevcik69", "JustCrates").checkForUpdates();

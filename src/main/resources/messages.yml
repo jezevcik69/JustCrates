@@ -121,6 +121,13 @@ particle-save-failed: "&cꜰᴀɪʟᴇᴅ ᴛᴏ ꜱᴀᴠᴇ ᴘᴀʀᴛɪᴄʟ
 particle-click-info: "&eᴄʟɪᴄᴋ ᴀ ᴘᴀʀᴛɪᴄʟᴇ ʙᴇʟᴏᴡ ᴛᴏ ꜱᴇᴛ ɪᴛ:"
 particle-type-info: "&7ᴏʀ ᴛʏᴘᴇ ᴀɴʏ ᴏᴛʜᴇʀ ᴘᴀʀᴛɪᴄʟᴇ ɴᴀᴍᴇ ᴍᴀɴᴜᴀʟʟʏ. ᴛʏᴘᴇ &cɴᴏɴᴇ&7 ᴛᴏ ᴄʟᴇᴀʀ."
 
+# Editor - Open sound
+open-sound-invalid: "&cɪɴᴠᴀʟɪᴅ ꜱᴏᴜɴᴅ ɴᴀᴍᴇ."
+open-sound-saved: "&aᴏᴘᴇɴ ꜱᴏᴜɴᴅ ꜱᴀᴠᴇᴅ."
+open-sound-save-failed: "&cꜰᴀɪʟᴇᴅ ᴛᴏ ꜱᴀᴠᴇ ᴏᴘᴇɴ ꜱᴏᴜɴᴅ."
+open-sound-click-info: "&eᴄʟɪᴄᴋ ᴀ ꜱᴏᴜɴᴅ ʙᴇʟᴏᴡ ᴛᴏ ꜱᴇᴛ ɪᴛ:"
+open-sound-type-info: "&7ᴏʀ ᴛʏᴘᴇ ᴀɴʏ ᴏᴛʜᴇʀ ꜱᴏᴜɴᴅ ɴᴀᴍᴇ ᴍᴀɴᴜᴀʟʟʏ. ᴛʏᴘᴇ &cɴᴏɴᴇ&7 ᴛᴏ ᴄʟᴇᴀʀ."
+
 # Editor - Hologram
 hologram-editor-title: "&eʜᴏʟᴏɢʀᴀᴍ ᴇᴅɪᴛᴏʀ ꜰᴏʀ: &f%crate%"
 hologram-replace-all: "&7ʀᴇᴘʟᴀᴄᴇ ᴀʟʟ: &fʟɪɴᴇ1|ʟɪɴᴇ2|ʟɪɴᴇ3"
@@ -163,6 +170,7 @@ enter-command: "&eᴇɴᴛᴇʀ ᴄᴏᴍᴍᴀɴᴅ ᴛᴏ ᴇxᴇᴄᴜᴛᴇ 
 command-example: "&7ᴇxᴀᴍᴘʟᴇ: &fᴄʀᴀᴛᴇ ᴋᴇʏ ɢɪᴠᴇ %player% ꜱᴛᴀʀᴛᴇʀ_ᴋᴇʏ 1"
 command-edit-info: "&7ᴛʜᴇɴ ʟᴇꜰᴛ ᴄʟɪᴄᴋ ʀᴇᴡᴀʀᴅ ᴛᴏ ᴇᴅɪᴛ ɴᴀᴍᴇ/ᴍᴀᴛᴇʀɪᴀʟ/ʟᴏʀᴇ/ᴡᴇɪɢʜᴛ."
 enter-cooldown: "&eᴇɴᴛᴇʀ ᴄᴏᴏʟᴅᴏᴡɴ ɪɴ ꜱᴇᴄᴏɴᴅꜱ (0 ᴛᴏ ᴅɪꜱᴀʙʟᴇ)."
+enter-open-sound: "&eᴇɴᴛᴇʀ ᴏᴘᴇɴ ꜱᴏᴜɴᴅ ɴᴀᴍᴇ ᴏʀ ᴄʟɪᴄᴋ ᴏɴᴇ ʙᴇʟᴏᴡ."
 enter-permission: "&eᴇɴᴛᴇʀ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ɴᴏᴅᴇ (ᴇ.ɢ. &fᴊᴜꜱᴛᴄʀᴀᴛᴇꜱ.ᴄʀᴀᴛᴇ.%crate%&e)."
 permission-remove-info: "&7ᴛʏᴘᴇ &fɴᴏɴᴇ &7ᴛᴏ ʀᴇᴍᴏᴠᴇ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ʀᴇǫᴜɪʀᴇᴍᴇɴᴛ."
 click-item-set-icon: "&aɴᴏᴡ ᴄʟɪᴄᴋ ᴀɴʏ ɪᴛᴇᴍ ɪɴ ʏᴏᴜʀ ɪɴᴠᴇɴᴛᴏʀʏ ᴛᴏ ꜱᴇᴛ ɪᴛ ᴀꜱ ᴛʜᴇ ᴋᴇʏ ɪᴄᴏɴ."
