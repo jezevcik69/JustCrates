@@ -50,7 +50,6 @@ public final class EditorService {
 
     private final Map<UUID, EditorInput> pendingInput = new ConcurrentHashMap<>();
     private final Map<UUID, String> bindMode = new ConcurrentHashMap<>();
-    private final List<UUID> unbindMode = new ArrayList<>();
     private final Map<UUID, Integer> hologramAwaitingLineInput = new ConcurrentHashMap<>();
     private final Map<UUID, String> keyIconMode = new ConcurrentHashMap<>();
     private final Map<UUID, String> rewardItemMode = new ConcurrentHashMap<>();
@@ -285,7 +284,9 @@ public final class EditorService {
         inv.setItem(22, info);
 
         inv.setItem(10, actionItem(Material.TNT, "&cUnbind Block", "unbind_block",
-                "&7Click a block", "&7to unbind"));
+                "&7Right click to unbind",
+                "&7the first bound location",
+                "&7Repeat to remove more"));
         inv.setItem(11, actionItem(Material.CHAIN, "&aBind Block", "bind_block",
                 "&7Click a block", "&7to bind"));
 
@@ -464,7 +465,7 @@ public final class EditorService {
             case CRATES -> handleCratesClick(player, action, data);
             case KEYS -> handleKeysClick(player, action, data, rightClick);
             case KEY_EDIT -> handleKeyEditClick(player, holder.getCrateId(), action, cursor, rawSlot, rightClick);
-            case CRATE_EDIT -> handleCrateEditClick(player, holder.getCrateId(), action);
+            case CRATE_EDIT -> handleCrateEditClick(player, holder.getCrateId(), action, rightClick);
             case REWARDS -> handleRewardsClick(player, holder.getCrateId(), action, data, rightClick);
             case KEY_SELECT -> handleKeySelectClick(player, holder.getCrateId(), action, data);
             case ROLL_TYPE_SELECT -> handleRollTypeSelectClick(player, holder.getCrateId(), action);
@@ -656,20 +657,6 @@ public final class EditorService {
         bindMode.remove(player.getUniqueId());
     }
 
-    public boolean isInUnbindMode(Player player) {
-        return unbindMode.contains(player.getUniqueId());
-    }
-
-    public void setUnbindMode(Player player) {
-        unbindMode.add(player.getUniqueId());
-        player.closeInventory();
-        player.sendMessage(Text.chat("&cClick a bound block to unbind it."));
-    }
-
-    public void clearUnbindMode(Player player) {
-        unbindMode.remove(player.getUniqueId());
-    }
-
     public void handleChatInput(Player player, String message) {
         EditorInput input = pendingInput.get(player.getUniqueId());
         if (input == null) {
@@ -824,7 +811,7 @@ public final class EditorService {
         }
     }
 
-    private void handleCrateEditClick(Player player, String crateId, String action) {
+    private void handleCrateEditClick(Player player, String crateId, String action, boolean rightClick) {
         if (crateId == null) {
             return;
         }
@@ -833,7 +820,17 @@ public final class EditorService {
         }
         switch (action) {
             case "bind_block" -> setBindMode(player, crateId);
-            case "unbind_block" -> setUnbindMode(player);
+            case "unbind_block" -> {
+                if (!rightClick) {
+                    return;
+                }
+                if (!blockCrateService.unbindFirst(crateId)) {
+                    player.sendMessage(Text.chat("&cThis crate has no bound blocks."));
+                    return;
+                }
+                blockCrateService.save();
+                player.sendMessage(Messages.get("block-unbound"));
+            }
             case "select_key" -> openKeySelectMenu(player, crateId);
             case "rewards" -> openRewardsMenu(player, crateId);
             case "set_particle" -> startSetCrateParticle(player, crateId);

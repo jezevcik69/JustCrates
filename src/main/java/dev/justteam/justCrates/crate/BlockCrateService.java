@@ -26,7 +26,7 @@ public final class BlockCrateService {
 
     private final JavaPlugin plugin;
     private final PluginPaths paths;
-    private final Map<String, String> bindings = new HashMap<>();
+    private final Map<String, String> bindings = new LinkedHashMap<>();
     private final Map<String, Map<UUID, List<UUID>>> hologramEntities = new HashMap<>();
     private final Set<String> suppressedHolograms = new HashSet<>();
     private final CrateService crateService;
@@ -84,6 +84,28 @@ public final class BlockCrateService {
         String key = serialize(location);
         bindings.remove(key);
         removeHologram(key);
+    }
+
+    public boolean unbindFirst(String crateId) {
+        if (crateId == null || crateId.isBlank()) {
+            return false;
+        }
+
+        String normalized = crateId.toLowerCase(Locale.ROOT);
+        Iterator<Map.Entry<String, String>> iterator = bindings.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, String> entry = iterator.next();
+            if (!normalized.equals(entry.getValue())) {
+                continue;
+            }
+
+            String key = entry.getKey();
+            iterator.remove();
+            removeHologram(key);
+            return true;
+        }
+
+        return false;
     }
 
     public int unbindAll(String crateId) {

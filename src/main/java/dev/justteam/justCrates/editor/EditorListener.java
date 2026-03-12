@@ -100,22 +100,6 @@ public final class EditorListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
-        if (editorService.isInUnbindMode(player)) {
-            if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK) {
-                return;
-            }
-            Block block = event.getClickedBlock();
-            if (block == null) {
-                return;
-            }
-            event.setCancelled(true);
-            editorService.clearUnbindMode(player);
-            editorService.getBlockCrateService().unbind(block.getLocation());
-            editorService.getBlockCrateService().save();
-            player.sendMessage(Messages.get("block-unbound"));
-            return;
-        }
-
         if (!editorService.isInBindMode(player)) {
             return;
         }
