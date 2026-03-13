@@ -2,6 +2,7 @@ package dev.justteam.justCrates.command;
 
 import dev.justteam.justCrates.JustCrates;
 import dev.justteam.justCrates.core.Messages;
+import dev.justteam.justCrates.core.Text;
 import dev.justteam.justCrates.key.KeyDefinition;
 import dev.justteam.justCrates.key.VirtualKeyService;
 import org.bukkit.Bukkit;
@@ -127,8 +128,10 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(Messages.get("failed-build-key"));
             return true;
         }
-        item.setAmount(amount);
-        target.getInventory().addItem(item);
+        if (!plugin.getKeyService().givePhysicalKeys(target, key, amount)) {
+            sender.sendMessage(Messages.get("failed-build-key"));
+            return true;
+        }
         sender.sendMessage(Messages.get("gave-key"));
         return true;
     }
@@ -172,12 +175,9 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
                     virtualKeyService.addKeys(online.getUniqueId(), keyId, amount);
                     given++;
                 } else {
-                    ItemStack item = plugin.getKeyService().createKeyItem(key);
-                    if (item == null) {
+                    if (!plugin.getKeyService().givePhysicalKeys(online, key, amount)) {
                         continue;
                     }
-                    item.setAmount(amount);
-                    online.getInventory().addItem(item);
                     given++;
                 }
             }
@@ -206,13 +206,10 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
                     "%player%", target.getName()));
             return true;
         }
-        ItemStack item = plugin.getKeyService().createKeyItem(key);
-        if (item == null) {
+        if (!plugin.getKeyService().givePhysicalKeys(target, key, amount)) {
             sender.sendMessage(Messages.get("failed-build-key"));
             return true;
         }
-        item.setAmount(amount);
-        target.getInventory().addItem(item);
         sender.sendMessage(Messages.get(
                 "given-key-to-player",
                 "%amount%", String.valueOf(amount),
@@ -297,12 +294,29 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage(Messages.get("help-title"));
-        sender.sendMessage(Messages.get("help-crate"));
-        sender.sendMessage(Messages.get("help-crate-help"));
-        sender.sendMessage(Messages.get("help-crate-editor"));
-        sender.sendMessage(Messages.get("help-crate-reload"));
-        sender.sendMessage(Messages.get("help-crate-key-give"));
-        sender.sendMessage(Messages.get("help-key"));
+        sendHelpLine(sender, "help-header");
+        sendHelpLine(sender, "help-title");
+        sendHelpLine(sender, "help-header");
+        sender.sendMessage("");
+        sendHelpLine(sender, "help-section-crates");
+        sendHelpLine(sender, "help-cmd-crate");
+        sendHelpLine(sender, "help-cmd-crate-help");
+        sendHelpLine(sender, "help-cmd-crate-editor");
+        sendHelpLine(sender, "help-cmd-crate-reload");
+        sender.sendMessage("");
+        sendHelpLine(sender, "help-section-keys");
+        sendHelpLine(sender, "help-cmd-crate-key-give");
+        sendHelpLine(sender, "help-cmd-key");
+        sender.sendMessage("");
+        sendHelpLine(sender, "help-also");
+        sendHelpLine(sender, "help-aliases");
+        sendHelpLine(sender, "help-footer");
+        sender.sendMessage("");
+        sendHelpLine(sender, "help-header");
+        sender.sendMessage("");
+    }
+
+    private void sendHelpLine(CommandSender sender, String key) {
+        sender.sendMessage(Text.color(Messages.raw(key)));
     }
 }

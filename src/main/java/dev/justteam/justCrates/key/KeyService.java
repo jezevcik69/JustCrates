@@ -6,6 +6,7 @@ import dev.justteam.justCrates.item.ItemDefinition;
 import dev.justteam.justCrates.item.ItemFactory;
 import dev.justteam.justCrates.provider.ProviderRegistry;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -315,5 +316,36 @@ public final class KeyService {
             plugin.getLogger().severe("Failed to update key virtual mode: " + e.getMessage());
             return false;
         }
+    }
+
+    public boolean givePhysicalKeys(Player target, KeyDefinition key, int amount) {
+        if (target == null || key == null || amount <= 0) {
+            return false;
+        }
+
+        ItemStack template = createKeyItem(key);
+        if (template == null) {
+            return false;
+        }
+
+        int maxStackSize = Math.max(1, template.getMaxStackSize());
+        int remaining = amount;
+
+        while (remaining > 0) {
+            int chunkSize = Math.min(maxStackSize, remaining);
+            ItemStack chunk = template.clone();
+            chunk.setAmount(chunkSize);
+
+            var leftovers = target.getInventory().addItem(chunk);
+            for (ItemStack leftover : leftovers.values()) {
+                if (leftover != null && leftover.getAmount() > 0) {
+                    target.getWorld().dropItemNaturally(target.getLocation(), leftover);
+                }
+            }
+
+            remaining -= chunkSize;
+        }
+
+        return true;
     }
 }

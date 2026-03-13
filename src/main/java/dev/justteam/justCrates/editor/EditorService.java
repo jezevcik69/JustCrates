@@ -475,13 +475,13 @@ public final class EditorService {
     public void startCreateCrate(Player player) {
         pendingInput.put(player.getUniqueId(), new EditorInput(EditorInputType.CREATE_CRATE, null, null));
         player.closeInventory();
-        player.sendMessage(Text.chat("&eEnter crate ID (e.g. &fstarter& e)."));
+        player.sendMessage(Text.chat("&eEnter crate ID (e.g. &fstarter&e)."));
     }
 
     public void startCreateKey(Player player) {
         pendingInput.put(player.getUniqueId(), new EditorInput(EditorInputType.CREATE_KEY, null, null));
         player.closeInventory();
-        player.sendMessage(Text.chat("&eEnter key ID (e.g. &fstarter_key& e)."));
+        player.sendMessage(Text.chat("&eEnter key ID (e.g. &fstarter_key&e)."));
         player.sendMessage(Text.chat("&7Icon can be set in GUI editor after creation."));
     }
 
@@ -959,11 +959,12 @@ public final class EditorService {
         cfg.set("id", id);
         cfg.set("type", "GUI");
         cfg.set("key", "");
-        cfg.set("display.name", "&aCrate " + id);
+        String defaultDisplayName = CrateService.defaultCrateDisplayName(id);
+        cfg.set("display.name", defaultDisplayName);
         cfg.set("display.lore", List.of("&7Edit me"));
         cfg.set("roll.type", "CSGO");
         cfg.set("roll.size", 27);
-        cfg.set("roll.title", "&aCrate " + id);
+        cfg.set("roll.title", defaultDisplayName);
         cfg.set("roll.duration-ticks", 60);
         cfg.set("roll.tick-interval", 2);
         cfg.set("sounds.open", "");
@@ -1916,13 +1917,10 @@ public final class EditorService {
             }
             return;
         }
-        ItemStack item = keyService.createKeyItem(key);
-        if (item == null) {
+        if (!keyService.givePhysicalKeys(target, key, amount)) {
             sender.sendMessage(Text.chat("&cFailed to build key item."));
             return;
         }
-        item.setAmount(amount);
-        target.getInventory().addItem(item);
         if (!sender.getUniqueId().equals(target.getUniqueId())) {
             sender.sendMessage(Text.chat("&aKey given."));
         }
@@ -2004,14 +2002,20 @@ public final class EditorService {
             for (int i = 0; i < lines.size(); i++) {
                 int lineIndex = i + 1;
 
-                TextComponent line = new TextComponent(
-                        Text.color("&7line " + lineIndex + ": &f" + lines.get(i)));
-                line.setClickEvent(new ClickEvent(
+                TextComponent prefix = new TextComponent(Text.color("&7line " + lineIndex + ": "));
+                TextComponent content = new TextComponent(Text.color(lines.get(i)));
+
+                ClickEvent editClick = new ClickEvent(
                         ClickEvent.Action.RUN_COMMAND,
-                        "/justcrates _editchat holo_edit " + lineIndex));
-                line.setHoverEvent(new HoverEvent(
+                        "/justcrates _editchat holo_edit " + lineIndex);
+                HoverEvent editHover = new HoverEvent(
                         HoverEvent.Action.SHOW_TEXT,
-                        new ComponentBuilder(Text.color("&aClick to edit this line")).create()));
+                        new ComponentBuilder(Text.color("&aClick to edit this line")).create());
+
+                prefix.setClickEvent(editClick);
+                prefix.setHoverEvent(editHover);
+                content.setClickEvent(editClick);
+                content.setHoverEvent(editHover);
 
                 TextComponent spacer = new TextComponent(" ");
 
@@ -2025,7 +2029,7 @@ public final class EditorService {
                         new ComponentBuilder(Text.color("&cRemove line " + lineIndex))
                                 .create()));
 
-                player.spigot().sendMessage(line, spacer, remove);
+                player.spigot().sendMessage(prefix, content, spacer, remove);
             }
         }
 

@@ -66,7 +66,7 @@ public final class CrateService {
             YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
             String id = cfg.getString("id", file.getName().replace(".yml", "")).toLowerCase();
             CrateType type = CrateType.valueOf(cfg.getString("type", "GUI").toUpperCase());
-            String name = cfg.getString("display.name", "&aCrate " + id);
+            String name = cfg.getString("display.name", defaultCrateDisplayName(id));
             List<String> lore = cfg.getStringList("display.lore");
             String particle = cfg.getString("display.particle", "");
             String openSound = cfg.getString("sounds.open", "").trim();
@@ -352,8 +352,21 @@ public final class CrateService {
 
     private void knockback(Player player, Block block) {
         BoundingBox box = block.getBoundingBox();
+        Vector playerPosition = player.getLocation().toVector();
+
+        boolean standingOnCrate = playerPosition.getX() >= box.getMinX() - 0.15
+                && playerPosition.getX() <= box.getMaxX() + 0.15
+                && playerPosition.getZ() >= box.getMinZ() - 0.15
+                && playerPosition.getZ() <= box.getMaxZ() + 0.15
+                && playerPosition.getY() >= box.getMaxY() - 0.2;
+
+        if (standingOnCrate) {
+            player.setVelocity(new Vector(0, 0.85, 0));
+            return;
+        }
+
         Vector crateCenter = box.getCenter();
-        Vector knockback = player.getLocation().toVector().subtract(crateCenter);
+        Vector knockback = playerPosition.subtract(crateCenter);
         knockback.setY(0);
         if (knockback.lengthSquared() < 0.0001) {
             knockback = player.getLocation().getDirection().setY(0).multiply(-1);
@@ -428,5 +441,36 @@ public final class CrateService {
         } catch (IOException e) {
             plugin.getLogger().severe("Failed to save hologram file " + file.getName() + ": " + e.getMessage());
         }
+    }
+
+    public static String defaultCrateDisplayName(String id) {
+        return "&a" + toDisplayWords(id) + " Crate";
+    }
+
+    private static String toDisplayWords(String id) {
+        if (id == null || id.isBlank()) {
+            return "New";
+        }
+
+        String normalized = id.trim().replace('-', ' ').replace('_', ' ');
+        String[] parts = normalized.split("\\s+");
+        StringBuilder builder = new StringBuilder();
+
+        for (String part : parts) {
+            if (part.isBlank()) {
+                continue;
+            }
+            if (!builder.isEmpty()) {
+                builder.append(' ');
+            }
+
+            String lower = part.toLowerCase(Locale.ROOT);
+            builder.append(Character.toUpperCase(lower.charAt(0)));
+            if (lower.length() > 1) {
+                builder.append(lower.substring(1));
+            }
+        }
+
+        return builder.isEmpty() ? "New" : builder.toString();
     }
 }
