@@ -39,6 +39,9 @@ hologram:
   # Player range in blocks where personal holograms are shown and placeholders are resolved
   view-distance: 24
 
+  # Base height of the top hologram line above the crate block
+  height-offset: 1.75
+
   # Fallback lines used when a crate does not define its own hologram text
   default-lines:
     - "&e%crate_name%"

@@ -3,7 +3,9 @@ package dev.justteam.justCrates.listener;
 import dev.justteam.justCrates.JustCrates;
 import dev.justteam.justCrates.crate.CrateDefinition;
 import dev.justteam.justCrates.gui.CratePreviewGui;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -17,11 +19,8 @@ public final class CrateListener implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onInteract(PlayerInteractEvent event) {
-        if (event.isCancelled()) {
-            return;
-        }
         if (event.getHand() != EquipmentSlot.HAND) {
             return;
         }
@@ -39,23 +38,22 @@ public final class CrateListener implements Listener {
             return;
         }
 
+        event.setUseInteractedBlock(Event.Result.DENY);
+        event.setUseItemInHand(Event.Result.DENY);
+        event.setCancelled(true);
+
         if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
-            event.setCancelled(true);
             CratePreviewGui.open(event.getPlayer(), crate, plugin.getPreviewGuiSettings());
             return;
         }
 
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            event.setCancelled(true);
             plugin.getCrateService().openCrate(event.getPlayer(), crate, event.getClickedBlock());
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onBlockBreak(BlockBreakEvent event) {
-        if (event.isCancelled()) {
-            return;
-        }
         String crateId = plugin.getBlockCrateService().getCrateId(event.getBlock().getLocation());
         if (crateId == null) {
             return;

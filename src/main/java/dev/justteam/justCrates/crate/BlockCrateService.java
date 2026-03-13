@@ -23,6 +23,7 @@ import java.util.*;
 
 public final class BlockCrateService {
     private static final double DEFAULT_VIEW_DISTANCE = 24.0D;
+    private static final double DEFAULT_HOLOGRAM_HEIGHT_OFFSET = 1.75D;
 
     private final JavaPlugin plugin;
     private final PluginPaths paths;
@@ -408,8 +409,12 @@ public final class BlockCrateService {
         return configured > 0 ? configured : DEFAULT_VIEW_DISTANCE;
     }
 
+    private double getHologramHeightOffset() {
+        return plugin.getConfig().getDouble("hologram.height-offset", DEFAULT_HOLOGRAM_HEIGHT_OFFSET);
+    }
+
     private Location hologramLineLocation(Location crateLoc, int lineCount, int lineIndex) {
-        double topOffset = 1.75 + (lineCount - 1) * 0.25;
+        double topOffset = getHologramHeightOffset() + (lineCount - 1) * 0.25;
         double y = crateLoc.getY() + topOffset - (lineIndex * 0.25);
         return new Location(crateLoc.getWorld(), crateLoc.getX() + 0.5, y, crateLoc.getZ() + 0.5);
     }
