@@ -3,6 +3,7 @@ package dev.justteam.justCrates.crate;
 import dev.justteam.justCrates.core.Messages;
 import dev.justteam.justCrates.core.PluginPaths;
 import dev.justteam.justCrates.core.Text;
+import dev.justteam.justCrates.gui.roll.HologramRollGui;
 import dev.justteam.justCrates.gui.roll.RollGuiFactory;
 import dev.justteam.justCrates.item.ItemDefinition;
 import dev.justteam.justCrates.item.ItemFactory;
@@ -231,6 +232,11 @@ public final class CrateService {
             }
         }
 
+        if (HologramRollGui.isRolling(player)) {
+            player.sendMessage(Messages.get("crate-already-rolling"));
+            return;
+        }
+
         boolean needsKey = crate.getKeyId() != null && !crate.getKeyId().isEmpty();
         if (needsKey) {
             boolean consumed = false;
@@ -284,16 +290,20 @@ public final class CrateService {
     }
 
     public RewardDefinition rollReward(CrateDefinition crate) {
-        int total = crate.getRewards().stream().mapToInt(RewardDefinition::getWeight).sum();
-        int roll = random.nextInt(Math.max(1, total));
-        int cursor = 0;
-        for (RewardDefinition reward : crate.getRewards()) {
-            cursor += reward.getWeight();
+        List<RewardDefinition> rewards = crate.getRewards();
+        if (rewards.isEmpty()) {
+            return null;
+        }
+        double totalInverse = rewards.stream().mapToDouble(r -> 1.0 / Math.max(1, r.getWeight())).sum();
+        double roll = random.nextDouble() * totalInverse;
+        double cursor = 0;
+        for (RewardDefinition reward : rewards) {
+            cursor += 1.0 / Math.max(1, reward.getWeight());
             if (roll < cursor) {
                 return reward;
             }
         }
-        return crate.getRewards().isEmpty() ? null : crate.getRewards().get(0);
+        return rewards.get(rewards.size() - 1);
     }
 
     public void giveReward(Player player, RewardDefinition reward) {

@@ -6,23 +6,34 @@ import dev.justteam.justCrates.crate.BlockCrateService;
 import dev.justteam.justCrates.crate.CrateDefinition;
 import dev.justteam.justCrates.crate.CrateService;
 import dev.justteam.justCrates.crate.RollDefinition;
+import dev.justteam.justCrates.gui.RewardPreview;
 import dev.justteam.justCrates.reward.RewardDefinition;
 import dev.justteam.justCrates.reward.RewardType;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Transformation;
+import org.joml.AxisAngle4f;
+import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public final class HologramRollGui {
     private HologramRollGui() {}
+
+    private static final Set<UUID> rollingPlayers = new HashSet<>();
+    private static final Set<String> rollingLocations = new HashSet<>();
+
+    public static boolean isRolling(Player player) {
+        return rollingPlayers.contains(player.getUniqueId());
+    }
 
     public static void open(JavaPlugin plugin, Player player, CrateDefinition crate, CrateService crateService, Block block, BlockCrateService blockCrateService) {
         if (block == null) {
@@ -36,34 +47,47 @@ public final class HologramRollGui {
             return;
         }
 
+        String locationKey = block.getWorld().getName() + ";" + block.getX() + ";" + block.getY() + ";" + block.getZ();
+
+        if (rollingPlayers.contains(player.getUniqueId())) {
+            player.sendMessage(Messages.get("crate-already-rolling"));
+            return;
+        }
+        if (rollingLocations.contains(locationKey)) {
+            player.sendMessage(Messages.get("crate-already-rolling"));
+            return;
+        }
+
         RewardDefinition finalReward = crateService.rollReward(crate);
         if (finalReward == null) {
             return;
         }
+
+        rollingPlayers.add(player.getUniqueId());
+        rollingLocations.add(locationKey);
 
         RollDefinition roll = crate.getRollDefinition();
         int totalTicks = roll.getDurationTicks();
         int baseInterval = Math.max(1, roll.getTickInterval());
 
         Location blockLoc = block.getLocation();
+        double heightOffset = plugin.getConfig().getDouble("hologram.height-offset", 1.75);
 
         if (blockCrateService != null) {
             blockCrateService.hideHologram(blockLoc);
         }
 
-        Location iconLoc = new Location(blockLoc.getWorld(), blockLoc.getX() + 0.5, blockLoc.getY() + 2.0, blockLoc.getZ() + 0.5);
-        Location nameLoc = new Location(blockLoc.getWorld(), blockLoc.getX() + 0.5, blockLoc.getY() + 1.7, blockLoc.getZ() + 0.5);
+        double nameY = blockLoc.getY() + heightOffset;
+        double iconY = nameY + 0.6;
 
-        ArmorStand iconStand = blockLoc.getWorld().spawn(iconLoc, ArmorStand.class, stand -> {
-            stand.setInvisible(true);
-            stand.setMarker(true);
-            stand.setGravity(false);
-            stand.setSmall(true);
-            stand.setInvulnerable(true);
-            stand.setSilent(true);
-            stand.setPersistent(false);
-            stand.setCustomNameVisible(true);
-            stand.setCustomName(" ");
+        Location nameLoc = new Location(blockLoc.getWorld(), blockLoc.getX() + 0.5, nameY, blockLoc.getZ() + 0.5);
+        Location iconLoc = new Location(blockLoc.getWorld(), blockLoc.getX() + 0.5, iconY, blockLoc.getZ() + 0.5);
+
+        ItemDisplay iconDisplay = blockLoc.getWorld().spawn(iconLoc, ItemDisplay.class, display -> {
+            display.setPersistent(false);
+            display.setInvulnerable(true);
+            display.setSilent(true);
+            display.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.GROUND);
         });
 
         ArmorStand nameStand = blockLoc.getWorld().spawn(nameLoc, ArmorStand.class, stand -> {
@@ -78,11 +102,21 @@ public final class HologramRollGui {
             stand.setCustomName(" ");
         });
 
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            if (online.getUniqueId().equals(player.getUniqueId())) {
+                online.showEntity(plugin, iconDisplay);
+                online.showEntity(plugin, nameStand);
+            } else {
+                online.hideEntity(plugin, iconDisplay);
+                online.hideEntity(plugin, nameStand);
+            }
+        }
+
         List<String> rewardNames = new ArrayList<>();
-        List<String> rewardIcons = new ArrayList<>();
+        List<ItemStack> rewardIcons = new ArrayList<>();
         for (RewardDefinition reward : rewards) {
             String name = resolveRewardName(reward);
-            String icon = resolveRewardIcon(reward);
+            ItemStack icon = resolveRewardIcon(reward);
             rewardNames.add(name);
             rewardIcons.add(icon);
         }
@@ -92,6 +126,7 @@ public final class HologramRollGui {
             int offset = 0;
             int currentInterval = baseInterval;
             int ticksSinceLastShift = 0;
+            float rotationAngle = 0f;
 
             @Override
             public void run() {
@@ -104,11 +139,20 @@ public final class HologramRollGui {
                 ticksSinceLastShift++;
                 elapsed++;
 
+                rotationAngle += 0.3f;
+                Transformation transform = new Transformation(
+                        new Vector3f(0, 0, 0),
+                        new AxisAngle4f(rotationAngle, 0f, 1f, 0f),
+                        new Vector3f(1.0f, 1.0f, 1.0f),
+                        new AxisAngle4f(0f, 0f, 0f, 1f)
+                );
+                iconDisplay.setTransformation(transform);
+
                 if (ticksSinceLastShift >= currentInterval) {
                     ticksSinceLastShift = 0;
 
                     int idx = offset % rewardNames.size();
-                    iconStand.setCustomName(Text.color(rewardIcons.get(idx)));
+                    iconDisplay.setItemStack(rewardIcons.get(idx));
                     nameStand.setCustomName(Text.color(rewardNames.get(idx)));
                     offset++;
 
@@ -126,8 +170,8 @@ public final class HologramRollGui {
 
                 if (elapsed >= totalTicks) {
                     String finalName = resolveRewardName(finalReward);
-                    String finalIcon = resolveRewardIcon(finalReward);
-                    iconStand.setCustomName(Text.color(finalIcon));
+                    ItemStack finalIcon = resolveRewardIcon(finalReward);
+                    iconDisplay.setItemStack(finalIcon);
                     nameStand.setCustomName(Text.color(finalName));
 
                     crateService.giveReward(player, finalReward);
@@ -147,8 +191,10 @@ public final class HologramRollGui {
             }
 
             private void cleanup() {
-                if (!iconStand.isDead()) iconStand.remove();
+                if (!iconDisplay.isDead()) iconDisplay.remove();
                 if (!nameStand.isDead()) nameStand.remove();
+                rollingPlayers.remove(player.getUniqueId());
+                rollingLocations.remove(locationKey);
                 if (blockCrateService != null) {
                     blockCrateService.showHologram(blockLoc);
                 }
@@ -178,25 +224,9 @@ public final class HologramRollGui {
         return "&fReward";
     }
 
-    private static String resolveRewardIcon(RewardDefinition reward) {
-        Material mat = null;
-        if (reward.getType() == RewardType.ITEM) {
-            if (reward.getItemStack() != null) {
-                mat = reward.getItemStack().getType();
-            } else if (reward.getItemDefinition() != null && reward.getItemDefinition().getMaterial() != null) {
-                mat = reward.getItemDefinition().getMaterial();
-            }
-        }
-        if (mat == null && reward.getPreviewMaterial() != null && !reward.getPreviewMaterial().isBlank()) {
-            try {
-                mat = Material.valueOf(reward.getPreviewMaterial().toUpperCase());
-            } catch (IllegalArgumentException ignored) {
-            }
-        }
-        if (mat == null) {
-            mat = Material.CHEST;
-        }
-        return "&e\u2B50 &6" + formatMaterial(mat.name()) + " &e\u2B50";
+    private static ItemStack resolveRewardIcon(RewardDefinition reward) {
+        ItemStack preview = RewardPreview.create(reward);
+        return preview == null ? null : preview.clone();
     }
 
     private static String formatMaterial(String name) {

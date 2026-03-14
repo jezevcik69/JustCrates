@@ -4,6 +4,7 @@ import dev.justteam.justCrates.JustCrates;
 import dev.justteam.justCrates.core.Messages;
 import dev.justteam.justCrates.core.Text;
 import dev.justteam.justCrates.key.KeyDefinition;
+import dev.justteam.justCrates.key.KeyService;
 import dev.justteam.justCrates.key.VirtualKeyService;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -73,10 +74,18 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
             case "key" -> {
-                if (args.length > 1 && args[1].equalsIgnoreCase("give")) {
-                    return handleCrateKeyGiveCommand(sender, label, args.length > 2 ? slice(args, 2) : new String[0]);
+                if (args.length > 1) {
+                    String keySubCommand = args[1].toLowerCase(Locale.ROOT);
+                    String[] keyArgs = args.length > 2 ? slice(args, 2) : new String[0];
+                    return switch (keySubCommand) {
+                        case "give" -> handleCrateKeyGiveCommand(sender, label, keyArgs);
+                        case "set" -> handleCrateKeySetCommand(sender, label, keyArgs);
+                        case "clear" -> handleCrateKeyClearCommand(sender, label, keyArgs);
+                        case "remove" -> handleCrateKeyRemoveCommand(sender, label, keyArgs);
+                        default -> handleKeyCommand(sender, label, slice(args, 1));
+                    };
                 }
-                return handleKeyCommand(sender, label, args.length > 1 ? slice(args, 1) : new String[0]);
+                return handleKeyCommand(sender, label, new String[0]);
             }
             default -> sendHelp(sender);
         }
@@ -219,6 +228,172 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private boolean handleCrateKeySetCommand(CommandSender sender, String label, String[] args) {
+        if (!sender.hasPermission("justcrates.admin")) {
+            sender.sendMessage(Messages.get("no-permission"));
+            return true;
+        }
+        if (args.length < 3) {
+            sender.sendMessage(Messages.get("key-set-usage", "%value%", label));
+            return true;
+        }
+
+        String targetArg = args[0];
+        String keyId = args[1].toLowerCase(Locale.ROOT);
+
+        int amount;
+        try {
+            amount = Math.max(0, Integer.parseInt(args[2]));
+        } catch (NumberFormatException ignored) {
+            sender.sendMessage(Messages.get("amount-must-be-number"));
+            return true;
+        }
+
+        KeyDefinition key = plugin.getKeyService().getKey(keyId);
+        if (key == null) {
+            sender.sendMessage(Messages.get("key-not-found"));
+            return true;
+        }
+
+        if (targetArg.equalsIgnoreCase("all")) {
+            int affected = 0;
+            for (Player online : Bukkit.getOnlinePlayers()) {
+                if (setPlayerKeyAmount(online, key, amount)) {
+                    affected++;
+                }
+            }
+            sender.sendMessage(Messages.get(
+                    "set-key-to-all",
+                    "%amount%", String.valueOf(amount),
+                    "%key%", keyId,
+                    "%count%", String.valueOf(affected)));
+            return true;
+        }
+
+        Player target = Bukkit.getPlayer(targetArg);
+        if (target == null) {
+            sender.sendMessage(Messages.get("player-not-found"));
+            return true;
+        }
+        if (!setPlayerKeyAmount(target, key, amount)) {
+            sender.sendMessage(Messages.get("failed-build-key"));
+            return true;
+        }
+        sender.sendMessage(Messages.get(
+                "set-key-to-player",
+                "%amount%", String.valueOf(amount),
+                "%key%", keyId,
+                "%player%", target.getName()));
+        return true;
+    }
+
+    private boolean handleCrateKeyClearCommand(CommandSender sender, String label, String[] args) {
+        if (!sender.hasPermission("justcrates.admin")) {
+            sender.sendMessage(Messages.get("no-permission"));
+            return true;
+        }
+        if (args.length < 2) {
+            sender.sendMessage(Messages.get("key-clear-usage", "%value%", label));
+            return true;
+        }
+
+        String targetArg = args[0];
+        String keyId = args[1].toLowerCase(Locale.ROOT);
+        KeyDefinition key = plugin.getKeyService().getKey(keyId);
+        if (key == null) {
+            sender.sendMessage(Messages.get("key-not-found"));
+            return true;
+        }
+
+        KeyService keyService = plugin.getKeyService();
+        if (targetArg.equalsIgnoreCase("all")) {
+            int affected = 0;
+            int removed = 0;
+            for (Player online : Bukkit.getOnlinePlayers()) {
+                int playerRemoved = keyService.clearPhysicalKeys(online, keyId, true);
+                if (playerRemoved > 0) {
+                    affected++;
+                    removed += playerRemoved;
+                }
+            }
+            sender.sendMessage(Messages.get(
+                    "cleared-key-from-all",
+                    "%amount%", String.valueOf(removed),
+                    "%key%", keyId,
+                    "%count%", String.valueOf(affected)));
+            return true;
+        }
+
+        Player target = Bukkit.getPlayer(targetArg);
+        if (target == null) {
+            sender.sendMessage(Messages.get("player-not-found"));
+            return true;
+        }
+        int removed = keyService.clearPhysicalKeys(target, keyId, true);
+        sender.sendMessage(Messages.get(
+                "cleared-key-from-player",
+                "%amount%", String.valueOf(removed),
+                "%key%", keyId,
+                "%player%", target.getName()));
+        return true;
+    }
+
+    private boolean handleCrateKeyRemoveCommand(CommandSender sender, String label, String[] args) {
+        if (!sender.hasPermission("justcrates.admin")) {
+            sender.sendMessage(Messages.get("no-permission"));
+            return true;
+        }
+        if (args.length < 2) {
+            sender.sendMessage(Messages.get("key-remove-usage", "%value%", label));
+            return true;
+        }
+
+        String targetArg = args[0];
+        String keyId = args[1].toLowerCase(Locale.ROOT);
+        KeyDefinition key = plugin.getKeyService().getKey(keyId);
+        if (key == null) {
+            sender.sendMessage(Messages.get("key-not-found"));
+            return true;
+        }
+
+        VirtualKeyService virtualKeyService = plugin.getVirtualKeyService();
+        if (virtualKeyService == null) {
+            sender.sendMessage(Messages.get("virtual-key-service-unavailable"));
+            return true;
+        }
+
+        if (targetArg.equalsIgnoreCase("all")) {
+            int affected = 0;
+            int removed = 0;
+            for (Player online : Bukkit.getOnlinePlayers()) {
+                int playerRemoved = virtualKeyService.clearKeys(online.getUniqueId(), keyId);
+                if (playerRemoved > 0) {
+                    affected++;
+                    removed += playerRemoved;
+                }
+            }
+            sender.sendMessage(Messages.get(
+                    "removed-key-from-all",
+                    "%amount%", String.valueOf(removed),
+                    "%key%", keyId,
+                    "%count%", String.valueOf(affected)));
+            return true;
+        }
+
+        Player target = Bukkit.getPlayer(targetArg);
+        if (target == null) {
+            sender.sendMessage(Messages.get("player-not-found"));
+            return true;
+        }
+        int removed = virtualKeyService.clearKeys(target.getUniqueId(), keyId);
+        sender.sendMessage(Messages.get(
+                "removed-key-from-player",
+                "%amount%", String.valueOf(removed),
+                "%key%", keyId,
+                "%player%", target.getName()));
+        return true;
+    }
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (command.getName().equalsIgnoreCase("key")) {
@@ -232,9 +407,10 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
             return filterByPrefix(List.of("help", "editor", "reload", "key"), args[0]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("key")) {
-            return filterByPrefix(List.of("give"), args[1]);
+            return filterByPrefix(List.of("give", "set", "clear", "remove"), args[1]);
         }
-        if (args.length == 3 && args[0].equalsIgnoreCase("key") && args[1].equalsIgnoreCase("give")) {
+        if (args.length == 3 && args[0].equalsIgnoreCase("key")
+                && isKeyActionRequiringTarget(args[1])) {
             List<String> suggestions = new ArrayList<>();
             suggestions.add("all");
             for (Player online : Bukkit.getOnlinePlayers()) {
@@ -242,11 +418,13 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
             }
             return filterByPrefix(suggestions, args[2]);
         }
-        if (args.length == 4 && args[0].equalsIgnoreCase("key") && args[1].equalsIgnoreCase("give")) {
+        if (args.length == 4 && args[0].equalsIgnoreCase("key")
+                && isKeyActionRequiringTarget(args[1])) {
             List<String> keyIds = plugin.getKeyService().getKeys().stream().map(KeyDefinition::getId).toList();
             return filterByPrefix(keyIds, args[3]);
         }
-        if (args.length == 5 && args[0].equalsIgnoreCase("key") && args[1].equalsIgnoreCase("give")) {
+        if (args.length == 5 && args[0].equalsIgnoreCase("key")
+                && (args[1].equalsIgnoreCase("give") || args[1].equalsIgnoreCase("set"))) {
             return filterByPrefix(List.of("1", "3", "5", "10", "16", "32", "64"), args[4]);
         }
         return Collections.emptyList();
@@ -293,6 +471,35 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
         return out;
     }
 
+    private boolean setPlayerKeyAmount(Player target, KeyDefinition key, int amount) {
+        if (target == null || key == null) {
+            return false;
+        }
+
+        String keyId = key.getId();
+        if (key.isVirtual()) {
+            VirtualKeyService virtualKeyService = plugin.getVirtualKeyService();
+            if (virtualKeyService == null) {
+                return false;
+            }
+            virtualKeyService.setKeys(target.getUniqueId(), keyId, amount);
+            return true;
+        }
+
+        plugin.getKeyService().clearPhysicalKeys(target, keyId, true);
+        if (amount <= 0) {
+            return true;
+        }
+        return plugin.getKeyService().givePhysicalKeys(target, key, amount);
+    }
+
+    private boolean isKeyActionRequiringTarget(String action) {
+        return action.equalsIgnoreCase("give")
+                || action.equalsIgnoreCase("set")
+                || action.equalsIgnoreCase("clear")
+                || action.equalsIgnoreCase("remove");
+    }
+
     private void sendHelp(CommandSender sender) {
         sendHelpLine(sender, "help-header");
         sendHelpLine(sender, "help-title");
@@ -306,6 +513,9 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage("");
         sendHelpLine(sender, "help-section-keys");
         sendHelpLine(sender, "help-cmd-crate-key-give");
+        sendHelpLine(sender, "help-cmd-crate-key-set");
+        sendHelpLine(sender, "help-cmd-crate-key-clear");
+        sendHelpLine(sender, "help-cmd-crate-key-remove");
         sendHelpLine(sender, "help-cmd-key");
         sender.sendMessage("");
         sendHelpLine(sender, "help-also");

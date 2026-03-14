@@ -6,6 +6,7 @@ import dev.justteam.justCrates.item.ItemDefinition;
 import dev.justteam.justCrates.item.ItemFactory;
 import dev.justteam.justCrates.provider.ProviderRegistry;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -347,5 +348,40 @@ public final class KeyService {
         }
 
         return true;
+    }
+
+    public int clearPhysicalKeys(Player target, String keyId, boolean includeEnderChest) {
+        if (target == null || keyId == null || keyId.isBlank()) {
+            return 0;
+        }
+
+        int removed = clearPhysicalKeys(target.getInventory(), keyId);
+        if (includeEnderChest) {
+            removed += clearPhysicalKeys(target.getEnderChest(), keyId);
+        }
+        target.updateInventory();
+        return removed;
+    }
+
+    private int clearPhysicalKeys(Inventory inventory, String keyId) {
+        if (inventory == null) {
+            return 0;
+        }
+
+        ItemStack[] contents = inventory.getContents();
+        int removed = 0;
+        for (int i = 0; i < contents.length; i++) {
+            ItemStack item = contents[i];
+            if (item == null || item.getAmount() <= 0) {
+                continue;
+            }
+            if (!isKey(item, keyId)) {
+                continue;
+            }
+            removed += item.getAmount();
+            contents[i] = null;
+        }
+        inventory.setContents(contents);
+        return removed;
     }
 }

@@ -71,6 +71,15 @@ public final class VirtualKeyService {
         yaml.save();
     }
 
+    public void setKeys(UUID playerId, String keyId, int amount) {
+        if (playerId == null || keyId == null || keyId.isBlank()) {
+            return;
+        }
+        YamlConfiguration cfg = yaml.getConfig();
+        cfg.set(path(playerId, keyId), amount > 0 ? amount : null);
+        yaml.save();
+    }
+
     public boolean takeKeys(UUID playerId, String keyId, int amount) {
         if (amount <= 0) {
             return false;
@@ -84,6 +93,20 @@ public final class VirtualKeyService {
         cfg.set(path(playerId, keyId), next > 0 ? next : null);
         yaml.save();
         return true;
+    }
+
+    public int clearKeys(UUID playerId, String keyId) {
+        if (playerId == null || keyId == null || keyId.isBlank()) {
+            return 0;
+        }
+        YamlConfiguration cfg = yaml.getConfig();
+        int current = cfg.getInt(path(playerId, keyId), 0);
+        if (current <= 0) {
+            return 0;
+        }
+        cfg.set(path(playerId, keyId), null);
+        yaml.save();
+        return current;
     }
 
     private int countPhysicalKeys(Player player, String keyId) {
