@@ -306,11 +306,15 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
         }
 
         KeyService keyService = plugin.getKeyService();
+        VirtualKeyService virtualKeyService = plugin.getVirtualKeyService();
         if (targetArg.equalsIgnoreCase("all")) {
             int affected = 0;
             int removed = 0;
             for (Player online : Bukkit.getOnlinePlayers()) {
                 int playerRemoved = keyService.clearPhysicalKeys(online, keyId, true);
+                if (virtualKeyService != null) {
+                    playerRemoved += virtualKeyService.clearKeys(online.getUniqueId(), keyId);
+                }
                 if (playerRemoved > 0) {
                     affected++;
                     removed += playerRemoved;
@@ -330,6 +334,9 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         int removed = keyService.clearPhysicalKeys(target, keyId, true);
+        if (virtualKeyService != null) {
+            removed += virtualKeyService.clearKeys(target.getUniqueId(), keyId);
+        }
         sender.sendMessage(Messages.get(
                 "cleared-key-from-player",
                 "%amount%", String.valueOf(removed),

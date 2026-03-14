@@ -527,10 +527,22 @@ public final class EditorService {
         player.sendMessage(Text.chat("&eClick a particle below to set it:"));
 
         String[] popularParticles = {
-                "FLAME", "VILLAGER_HAPPY", "HEART", "CRIT_MAGIC", "ENCHANTMENT_TABLE",
-                "PORTAL", "REDSTONE", "SLIME", "SNOWBALL", "SPELL_WITCH",
-                "TOWNAURA", "VILLAGER_ANGRY", "WATER_DROP", "DRAGON_BREATH", "END_ROD",
-                "TOTEM", "SMOKE_NORMAL", "CLOUD", "LAVA", "GLOW", "NONE"
+                "FLAME", "SOUL_FIRE_FLAME", "SMALL_FLAME", "HAPPY_VILLAGER", "ANGRY_VILLAGER",
+                "HEART", "ENCHANTED_HIT", "CRIT", "ENCHANT", "PORTAL", "REVERSE_PORTAL",
+                "DUST", "ITEM_SLIME", "ITEM_SNOWBALL", "WITCH", "MYCELIUM", "NOTE",
+                "DRAGON_BREATH", "END_ROD", "TOTEM_OF_UNDYING", "SMOKE", "LARGE_SMOKE",
+                "CLOUD", "LAVA", "GLOW", "CHERRY_LEAVES", "DRIPPING_HONEY", "ELECTRIC_SPARK",
+                "SNOWFLAKE", "WAX_ON", "WAX_OFF", "SCRAPE", "SCULK_SOUL", "SCULK_CHARGE_POP",
+                "SONIC_BOOM", "FLASH", "CAMPFIRE_COSY_SMOKE", "CAMPFIRE_SIGNAL_SMOKE",
+                "COMPOSTER", "TRIAL_SPAWNER_DETECTION", "RAID_OMEN", "TRIAL_OMEN",
+                "SPLASH", "BUBBLE", "NAUTILUS", "FIREWORK", "DOLPHIN", "ASH", "WHITE_ASH",
+                "CRIMSON_SPORE", "WARPED_SPORE", "SOUL", "DRIPPING_WATER", "DRIPPING_LAVA",
+                "DRIPPING_OBSIDIAN_TEAR", "FALLING_HONEY", "FALLING_NECTAR",
+                "SPORE_BLOSSOM_AIR", "FALLING_SPORE_BLOSSOM", "WHITE_SMOKE",
+                "DUST_PLUME", "GUST", "EGG_CRACK", "POOF", "EXPLOSION",
+                "SWEEP_ATTACK", "DAMAGE_INDICATOR", "SPIT", "SQUID_INK", "EFFECT",
+                "INSTANT_EFFECT", "RAIN", "BUBBLE_POP", "BUBBLE_COLUMN_UP",
+                "CURRENT_DOWN", "SNEEZE", "NONE"
         };
 
         ComponentBuilder builder = new ComponentBuilder("");
@@ -564,9 +576,21 @@ public final class EditorService {
         player.sendMessage(Messages.get("open-sound-click-info"));
 
         String[] popularSounds = {
-                "BLOCK_CHEST_OPEN", "BLOCK_ENDER_CHEST_OPEN", "BLOCK_BARREL_OPEN", "ENTITY_PLAYER_LEVELUP",
-                "ENTITY_EXPERIENCE_ORB_PICKUP", "ENTITY_FIREWORK_ROCKET_BLAST", "BLOCK_AMETHYST_BLOCK_CHIME",
-                "BLOCK_NOTE_BLOCK_PLING", "BLOCK_BEACON_ACTIVATE", "ITEM_TOTEM_USE", "UI_TOAST_CHALLENGE_COMPLETE",
+                "BLOCK_CHEST_OPEN", "BLOCK_ENDER_CHEST_OPEN", "BLOCK_BARREL_OPEN",
+                "ENTITY_PLAYER_LEVELUP", "ENTITY_EXPERIENCE_ORB_PICKUP",
+                "ENTITY_FIREWORK_ROCKET_BLAST", "ENTITY_FIREWORK_ROCKET_LARGE_BLAST",
+                "ENTITY_FIREWORK_ROCKET_TWINKLE", "BLOCK_AMETHYST_BLOCK_CHIME",
+                "BLOCK_AMETHYST_CLUSTER_BREAK", "BLOCK_NOTE_BLOCK_PLING",
+                "BLOCK_NOTE_BLOCK_BELL", "BLOCK_NOTE_BLOCK_CHIME",
+                "BLOCK_NOTE_BLOCK_XYLOPHONE", "BLOCK_NOTE_BLOCK_HARP",
+                "BLOCK_BEACON_ACTIVATE", "BLOCK_BEACON_POWER_SELECT",
+                "BLOCK_ENCHANTMENT_TABLE_USE", "BLOCK_END_PORTAL_SPAWN",
+                "BLOCK_RESPAWN_ANCHOR_CHARGE", "BLOCK_TRIAL_SPAWNER_OPEN_SHUTTER",
+                "ITEM_TOTEM_USE", "ITEM_TRIDENT_THUNDER",
+                "ENTITY_ENDER_DRAGON_GROWL", "ENTITY_WITHER_SPAWN",
+                "ENTITY_LIGHTNING_BOLT_THUNDER", "ENTITY_WARDEN_SONIC_BOOM",
+                "ENTITY_ALLAY_AMBIENT_WITH_ITEM", "ENTITY_EVOKER_PREPARE_SUMMON",
+                "UI_TOAST_CHALLENGE_COMPLETE", "UI_TOAST_IN",
                 "NONE"
         };
 
@@ -1060,6 +1084,7 @@ public final class EditorService {
         if (particle.equalsIgnoreCase("NONE") || particle.isEmpty()) {
             particle = "";
         } else {
+            particle = BlockCrateService.resolveLegacyParticle(particle);
             try {
                 org.bukkit.Particle.valueOf(particle);
             } catch (IllegalArgumentException e) {

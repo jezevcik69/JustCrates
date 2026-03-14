@@ -7,6 +7,7 @@ import dev.justteam.justCrates.key.KeyDefinition;
 import dev.justteam.justCrates.key.VirtualKeyService;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
@@ -24,6 +25,47 @@ import java.util.*;
 public final class BlockCrateService {
     private static final double DEFAULT_VIEW_DISTANCE = 24.0D;
     private static final double DEFAULT_HOLOGRAM_HEIGHT_OFFSET = 1.75D;
+
+    private static final Map<String, String> LEGACY_PARTICLE_NAMES = Map.ofEntries(
+            Map.entry("VILLAGER_HAPPY", "HAPPY_VILLAGER"),
+            Map.entry("VILLAGER_ANGRY", "ANGRY_VILLAGER"),
+            Map.entry("CRIT_MAGIC", "ENCHANTED_HIT"),
+            Map.entry("ENCHANTMENT_TABLE", "ENCHANT"),
+            Map.entry("REDSTONE", "DUST"),
+            Map.entry("SLIME", "ITEM_SLIME"),
+            Map.entry("SPELL_WITCH", "WITCH"),
+            Map.entry("TOWNAURA", "MYCELIUM"),
+            Map.entry("WATER_DROP", "SPLASH"),
+            Map.entry("TOTEM", "TOTEM_OF_UNDYING"),
+            Map.entry("SMOKE_NORMAL", "SMOKE"),
+            Map.entry("SMOKE_LARGE", "LARGE_SMOKE"),
+            Map.entry("SNOWBALL", "ITEM_SNOWBALL"),
+            Map.entry("SPELL", "EFFECT"),
+            Map.entry("SPELL_INSTANT", "INSTANT_EFFECT"),
+            Map.entry("SPELL_MOB", "ENTITY_EFFECT"),
+            Map.entry("SPELL_MOB_AMBIENT", "ENTITY_EFFECT"),
+            Map.entry("DRIP_WATER", "DRIPPING_WATER"),
+            Map.entry("DRIP_LAVA", "DRIPPING_LAVA"),
+            Map.entry("SUSPENDED_DEPTH", "UNDERWATER"),
+            Map.entry("EXPLOSION_NORMAL", "POOF"),
+            Map.entry("EXPLOSION_LARGE", "EXPLOSION"),
+            Map.entry("EXPLOSION_HUGE", "EXPLOSION_EMITTER"),
+            Map.entry("FIREWORKS_SPARK", "FIREWORK"),
+            Map.entry("WATER_BUBBLE", "BUBBLE"),
+            Map.entry("WATER_SPLASH", "SPLASH"),
+            Map.entry("WATER_WAKE", "FISHING"),
+            Map.entry("BLOCK_CRACK", "BLOCK"),
+            Map.entry("BLOCK_DUST", "BLOCK"),
+            Map.entry("MOB_APPEARANCE", "ELDER_GUARDIAN"),
+            Map.entry("ITEM_CRACK", "ITEM"),
+            Map.entry("FALLING_DUST", "FALLING_DUST")
+    );
+
+    public static String resolveLegacyParticle(String name) {
+        if (name == null) return null;
+        String upper = name.toUpperCase(Locale.ROOT);
+        return LEGACY_PARTICLE_NAMES.getOrDefault(upper, upper);
+    }
 
     private final JavaPlugin plugin;
     private final PluginPaths paths;
@@ -224,7 +266,15 @@ public final class BlockCrateService {
             }
 
             try {
-                Particle particle = Particle.valueOf(crate.getParticle());
+                String particleName = crate.getParticle().toUpperCase(Locale.ROOT);
+                particleName = LEGACY_PARTICLE_NAMES.getOrDefault(particleName, particleName);
+                Particle particle = Particle.valueOf(particleName);
+                Object particleData = null;
+                if (particle.getDataType() == Particle.DustOptions.class) {
+                    particleData = new Particle.DustOptions(Color.WHITE, 1.0f);
+                } else if (particle.getDataType() != Void.class) {
+                    continue;
+                }
                 for (int i = 0; i < 6; i++) {
                     double t = (millis - (i * 20)) / 1000.0;
                     double angle = t * Math.PI * 2 * 3.0;
@@ -239,7 +289,11 @@ public final class BlockCrateService {
 
                     Location center = loc.clone().add(0.5, height, 0.5);
                     Location particleLoc = center.add(xOffset, 0, zOffset);
-                    loc.getWorld().spawnParticle(particle, particleLoc, 1, 0, 0, 0, 0);
+                    if (particleData != null) {
+                        loc.getWorld().spawnParticle(particle, particleLoc, 1, 0, 0, 0, 0, particleData);
+                    } else {
+                        loc.getWorld().spawnParticle(particle, particleLoc, 1, 0, 0, 0, 0);
+                    }
                 }
             } catch (Exception ignored) {
             }
