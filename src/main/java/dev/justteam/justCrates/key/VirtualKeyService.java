@@ -109,6 +109,24 @@ public final class VirtualKeyService {
         return current;
     }
 
+    public int removeKeys(UUID playerId, String keyId, int amount) {
+        if (playerId == null || keyId == null || keyId.isBlank() || amount <= 0) {
+            return 0;
+        }
+
+        YamlConfiguration cfg = yaml.getConfig();
+        int current = cfg.getInt(path(playerId, keyId), 0);
+        if (current <= 0) {
+            return 0;
+        }
+
+        int removed = Math.min(current, amount);
+        int next = current - removed;
+        cfg.set(path(playerId, keyId), next > 0 ? next : null);
+        yaml.save();
+        return removed;
+    }
+
     private int countPhysicalKeys(Player player, String keyId) {
         int total = 0;
         for (ItemStack item : player.getInventory().getContents()) {

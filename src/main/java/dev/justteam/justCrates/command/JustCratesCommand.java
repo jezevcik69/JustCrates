@@ -350,13 +350,22 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(Messages.get("no-permission"));
             return true;
         }
-        if (args.length < 2) {
+        if (args.length < 3) {
             sender.sendMessage(Messages.get("key-remove-usage", "%value%", label));
             return true;
         }
 
         String targetArg = args[0];
         String keyId = args[1].toLowerCase(Locale.ROOT);
+
+        int amount;
+        try {
+            amount = Math.max(1, Integer.parseInt(args[2]));
+        } catch (NumberFormatException ignored) {
+            sender.sendMessage(Messages.get("amount-must-be-number"));
+            return true;
+        }
+
         KeyDefinition key = plugin.getKeyService().getKey(keyId);
         if (key == null) {
             sender.sendMessage(Messages.get("key-not-found"));
@@ -373,7 +382,7 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
             int affected = 0;
             int removed = 0;
             for (Player online : Bukkit.getOnlinePlayers()) {
-                int playerRemoved = virtualKeyService.clearKeys(online.getUniqueId(), keyId);
+                int playerRemoved = virtualKeyService.removeKeys(online.getUniqueId(), keyId, amount);
                 if (playerRemoved > 0) {
                     affected++;
                     removed += playerRemoved;
@@ -392,7 +401,7 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(Messages.get("player-not-found"));
             return true;
         }
-        int removed = virtualKeyService.clearKeys(target.getUniqueId(), keyId);
+        int removed = virtualKeyService.removeKeys(target.getUniqueId(), keyId, amount);
         sender.sendMessage(Messages.get(
                 "removed-key-from-player",
                 "%amount%", String.valueOf(removed),
@@ -431,7 +440,9 @@ public final class JustCratesCommand implements CommandExecutor, TabCompleter {
             return filterByPrefix(keyIds, args[3]);
         }
         if (args.length == 5 && args[0].equalsIgnoreCase("key")
-                && (args[1].equalsIgnoreCase("give") || args[1].equalsIgnoreCase("set"))) {
+                && (args[1].equalsIgnoreCase("give")
+                || args[1].equalsIgnoreCase("set")
+                || args[1].equalsIgnoreCase("remove"))) {
             return filterByPrefix(List.of("1", "3", "5", "10", "16", "32", "64"), args[4]);
         }
         return Collections.emptyList();

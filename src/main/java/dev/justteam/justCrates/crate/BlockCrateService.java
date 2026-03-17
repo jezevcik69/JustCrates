@@ -5,9 +5,10 @@ import dev.justteam.justCrates.core.PluginPaths;
 import dev.justteam.justCrates.core.Text;
 import dev.justteam.justCrates.key.KeyDefinition;
 import dev.justteam.justCrates.key.VirtualKeyService;
+import dev.justteam.justLib.api.effect.ParticleOptions;
+import dev.justteam.justLib.util.ParticleUtils;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
-import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
@@ -26,45 +27,8 @@ public final class BlockCrateService {
     private static final double DEFAULT_VIEW_DISTANCE = 24.0D;
     private static final double DEFAULT_HOLOGRAM_HEIGHT_OFFSET = 1.75D;
 
-    private static final Map<String, String> LEGACY_PARTICLE_NAMES = Map.ofEntries(
-            Map.entry("VILLAGER_HAPPY", "HAPPY_VILLAGER"),
-            Map.entry("VILLAGER_ANGRY", "ANGRY_VILLAGER"),
-            Map.entry("CRIT_MAGIC", "ENCHANTED_HIT"),
-            Map.entry("ENCHANTMENT_TABLE", "ENCHANT"),
-            Map.entry("REDSTONE", "DUST"),
-            Map.entry("SLIME", "ITEM_SLIME"),
-            Map.entry("SPELL_WITCH", "WITCH"),
-            Map.entry("TOWNAURA", "MYCELIUM"),
-            Map.entry("WATER_DROP", "SPLASH"),
-            Map.entry("TOTEM", "TOTEM_OF_UNDYING"),
-            Map.entry("SMOKE_NORMAL", "SMOKE"),
-            Map.entry("SMOKE_LARGE", "LARGE_SMOKE"),
-            Map.entry("SNOWBALL", "ITEM_SNOWBALL"),
-            Map.entry("SPELL", "EFFECT"),
-            Map.entry("SPELL_INSTANT", "INSTANT_EFFECT"),
-            Map.entry("SPELL_MOB", "ENTITY_EFFECT"),
-            Map.entry("SPELL_MOB_AMBIENT", "ENTITY_EFFECT"),
-            Map.entry("DRIP_WATER", "DRIPPING_WATER"),
-            Map.entry("DRIP_LAVA", "DRIPPING_LAVA"),
-            Map.entry("SUSPENDED_DEPTH", "UNDERWATER"),
-            Map.entry("EXPLOSION_NORMAL", "POOF"),
-            Map.entry("EXPLOSION_LARGE", "EXPLOSION"),
-            Map.entry("EXPLOSION_HUGE", "EXPLOSION_EMITTER"),
-            Map.entry("FIREWORKS_SPARK", "FIREWORK"),
-            Map.entry("WATER_BUBBLE", "BUBBLE"),
-            Map.entry("WATER_SPLASH", "SPLASH"),
-            Map.entry("WATER_WAKE", "FISHING"),
-            Map.entry("BLOCK_CRACK", "BLOCK"),
-            Map.entry("BLOCK_DUST", "BLOCK"),
-            Map.entry("MOB_APPEARANCE", "ELDER_GUARDIAN"),
-            Map.entry("ITEM_CRACK", "ITEM"),
-            Map.entry("FALLING_DUST", "FALLING_DUST")
-    );
-
     public static String resolveLegacyParticle(String name) {
-        if (name == null) return null;
-        String upper = name.toUpperCase(Locale.ROOT);
-        return LEGACY_PARTICLE_NAMES.getOrDefault(upper, upper);
+        return ParticleUtils.normalizeParticleName(name);
     }
 
     private final JavaPlugin plugin;
@@ -72,6 +36,8 @@ public final class BlockCrateService {
     private final Map<String, String> bindings = new LinkedHashMap<>();
     private final Map<String, Map<UUID, List<UUID>>> hologramEntities = new HashMap<>();
     private final Set<String> suppressedHolograms = new HashSet<>();
+    private final Map<String, Set<UUID>> suppressedViewerHolograms = new HashMap<>();
+    private final Set<String> invalidParticlesWarned = new HashSet<>();
     private final CrateService crateService;
     private BukkitTask particleTask;
     private BukkitTask hologramTask;
@@ -84,6 +50,9 @@ public final class BlockCrateService {
 
     public void load() {
         bindings.clear();
+        suppressedHolograms.clear();
+        suppressedViewerHolograms.clear();
+        invalidParticlesWarned.clear();
         File file = paths.getBlocksFile();
         if (file.exists()) {
             YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
@@ -126,6 +95,8 @@ public final class BlockCrateService {
     public void unbind(Location location) {
         String key = serialize(location);
         bindings.remove(key);
+        suppressedHolograms.remove(key);
+        suppressedViewerHolograms.remove(key);
         removeHologram(key);
     }
 
@@ -144,6 +115,8 @@ public final class BlockCrateService {
 
             String key = entry.getKey();
             iterator.remove();
+            suppressedHolograms.remove(key);
+            suppressedViewerHolograms.remove(key);
             removeHologram(key);
             return true;
         }
@@ -164,6 +137,8 @@ public final class BlockCrateService {
         }
         for (String key : toRemove) {
             bindings.remove(key);
+            suppressedHolograms.remove(key);
+            suppressedViewerHolograms.remove(key);
             removeHologram(key);
         }
         return toRemove.size();
@@ -199,10 +174,41 @@ public final class BlockCrateService {
         removeHologram(key);
     }
 
+    public void hideHologram(Location location, UUID viewerId) {
+        if (viewerId == null) {
+            hideHologram(location);
+            return;
+        }
+
+        String key = serialize(location);
+        suppressedViewerHolograms.computeIfAbsent(key, ignored -> new HashSet<>()).add(viewerId);
+        removeHologram(key, viewerId);
+    }
+
     public void showHologram(Location location) {
         String key = serialize(location);
         suppressedHolograms.remove(key);
         if (bindings.containsKey(key)) {
+            refreshHologram(key);
+        }
+    }
+
+    public void showHologram(Location location, UUID viewerId) {
+        if (viewerId == null) {
+            showHologram(location);
+            return;
+        }
+
+        String key = serialize(location);
+        Set<UUID> suppressedViewers = suppressedViewerHolograms.get(key);
+        if (suppressedViewers != null) {
+            suppressedViewers.remove(viewerId);
+            if (suppressedViewers.isEmpty()) {
+                suppressedViewerHolograms.remove(key);
+            }
+        }
+
+        if (bindings.containsKey(key) && !suppressedHolograms.contains(key)) {
             refreshHologram(key);
         }
     }
@@ -238,6 +244,8 @@ public final class BlockCrateService {
             hologramTask = null;
         }
         clearAllHolograms();
+        suppressedHolograms.clear();
+        suppressedViewerHolograms.clear();
     }
 
     private void spawnParticles() {
@@ -265,39 +273,54 @@ public final class BlockCrateService {
                 continue;
             }
 
-            try {
-                String particleName = crate.getParticle().toUpperCase(Locale.ROOT);
-                particleName = LEGACY_PARTICLE_NAMES.getOrDefault(particleName, particleName);
-                Particle particle = Particle.valueOf(particleName);
-                Object particleData = null;
-                if (particle.getDataType() == Particle.DustOptions.class) {
-                    particleData = new Particle.DustOptions(Color.WHITE, 1.0f);
-                } else if (particle.getDataType() != Void.class) {
-                    continue;
-                }
-                for (int i = 0; i < 6; i++) {
-                    double t = (millis - (i * 20)) / 1000.0;
-                    double angle = t * Math.PI * 2 * 3.0;
-                    double height = (t * 0.75) % 1.5;
-                    if (height < 0) {
-                        height += 1.5;
-                    }
+            String particleName = ParticleUtils.normalizeParticleName(crate.getParticle());
+            Particle particle = ParticleUtils.resolveParticle(particleName);
+            if (particle == null) {
+                warnInvalidParticle(crate.getId(), crate.getParticle());
+                continue;
+            }
 
-                    double radius = 0.65;
-                    double xOffset = radius * Math.cos(angle);
-                    double zOffset = radius * Math.sin(angle);
-
-                    Location center = loc.clone().add(0.5, height, 0.5);
-                    Location particleLoc = center.add(xOffset, 0, zOffset);
-                    if (particleData != null) {
-                        loc.getWorld().spawnParticle(particle, particleLoc, 1, 0, 0, 0, 0, particleData);
-                    } else {
-                        loc.getWorld().spawnParticle(particle, particleLoc, 1, 0, 0, 0, 0);
-                    }
+            ParticleOptions options = buildParticleOptions(particleName);
+            for (int i = 0; i < 6; i++) {
+                double t = (millis - (i * 20)) / 1000.0;
+                double angle = t * Math.PI * 2 * 3.0;
+                double height = (t * 0.75) % 1.5;
+                if (height < 0) {
+                    height += 1.5;
                 }
-            } catch (Exception ignored) {
+
+                double radius = 0.65;
+                double xOffset = radius * Math.cos(angle);
+                double zOffset = radius * Math.sin(angle);
+
+                Location center = loc.clone().add(0.5, height, 0.5);
+                Location particleLoc = center.add(xOffset, 0, zOffset);
+                if (!ParticleUtils.spawnParticle(particleLoc, particle, options)) {
+                    warnInvalidParticle(crate.getId(), crate.getParticle());
+                    break;
+                }
             }
         }
+    }
+
+    private ParticleOptions buildParticleOptions(String particleName) {
+        return switch (particleName) {
+            case "PORTAL", "REVERSE_PORTAL" -> new ParticleOptions(4, 0.08D, 0.08D, 0.08D, 0.20D, null, true);
+            case "SMOKE", "LARGE_SMOKE", "WHITE_SMOKE", "CAMPFIRE_COSY_SMOKE", "CAMPFIRE_SIGNAL_SMOKE" ->
+                    new ParticleOptions(3, 0.03D, 0.03D, 0.03D, 0.01D, null, true);
+            case "FLAME", "SOUL_FIRE_FLAME", "SMALL_FLAME", "END_ROD", "FIREWORK", "GLOW", "WITCH" ->
+                    new ParticleOptions(2, 0.02D, 0.02D, 0.02D, 0.0D, null, true);
+            default -> ParticleOptions.single().forced();
+        };
+    }
+
+    private void warnInvalidParticle(String crateId, String particleName) {
+        String warningKey = crateId + ":" + particleName;
+        if (!invalidParticlesWarned.add(warningKey)) {
+            return;
+        }
+        plugin.getLogger().warning("Skipping invalid or unsupported particle '" + particleName
+                + "' for crate '" + crateId + "'.");
     }
 
     private void refreshHologram(String key) {
@@ -328,7 +351,7 @@ public final class BlockCrateService {
             return;
         }
 
-        List<Player> viewers = resolveViewers(loc);
+        List<Player> viewers = resolveViewers(key, loc);
         if (viewers.isEmpty()) {
             removeHologram(key);
             return;
@@ -437,7 +460,7 @@ public final class BlockCrateService {
         }
     }
 
-    private List<Player> resolveViewers(Location crateLoc) {
+    private List<Player> resolveViewers(String key, Location crateLoc) {
         World world = crateLoc.getWorld();
         if (world == null) {
             return List.of();
@@ -445,9 +468,13 @@ public final class BlockCrateService {
 
         double maxDistanceSquared = Math.pow(getViewDistance(), 2);
         Location center = crateLoc.clone().add(0.5, 0.5, 0.5);
+        Set<UUID> suppressedViewers = suppressedViewerHolograms.getOrDefault(key, Collections.emptySet());
         List<Player> viewers = new ArrayList<>();
         for (Player player : world.getPlayers()) {
             if (!player.isOnline() || player.isDead()) {
+                continue;
+            }
+            if (suppressedViewers.contains(player.getUniqueId())) {
                 continue;
             }
             if (player.getLocation().distanceSquared(center) > maxDistanceSquared) {

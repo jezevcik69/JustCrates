@@ -4,6 +4,8 @@ main: dev.justteam.justCrates.JustCrates
 api-version: '1.21'
 authors: [ Meyba._., Jezevcik20 ]
 description: Just a crates plugin.
+depend:
+  - JustLib
 softdepend:
   - Oraxen
   - ItemsAdder

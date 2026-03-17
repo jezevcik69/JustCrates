@@ -29,7 +29,6 @@ public final class HologramRollGui {
     private HologramRollGui() {}
 
     private static final Set<UUID> rollingPlayers = new HashSet<>();
-    private static final Set<String> rollingLocations = new HashSet<>();
 
     public static boolean isRolling(Player player) {
         return rollingPlayers.contains(player.getUniqueId());
@@ -47,13 +46,7 @@ public final class HologramRollGui {
             return;
         }
 
-        String locationKey = block.getWorld().getName() + ";" + block.getX() + ";" + block.getY() + ";" + block.getZ();
-
         if (rollingPlayers.contains(player.getUniqueId())) {
-            player.sendMessage(Messages.get("crate-already-rolling"));
-            return;
-        }
-        if (rollingLocations.contains(locationKey)) {
             player.sendMessage(Messages.get("crate-already-rolling"));
             return;
         }
@@ -64,7 +57,6 @@ public final class HologramRollGui {
         }
 
         rollingPlayers.add(player.getUniqueId());
-        rollingLocations.add(locationKey);
 
         RollDefinition roll = crate.getRollDefinition();
         int totalTicks = roll.getDurationTicks();
@@ -74,7 +66,7 @@ public final class HologramRollGui {
         double heightOffset = plugin.getConfig().getDouble("hologram.height-offset", 1.75);
 
         if (blockCrateService != null) {
-            blockCrateService.hideHologram(blockLoc);
+            blockCrateService.hideHologram(blockLoc, player.getUniqueId());
         }
 
         double nameY = blockLoc.getY() + heightOffset;
@@ -194,9 +186,8 @@ public final class HologramRollGui {
                 if (!iconDisplay.isDead()) iconDisplay.remove();
                 if (!nameStand.isDead()) nameStand.remove();
                 rollingPlayers.remove(player.getUniqueId());
-                rollingLocations.remove(locationKey);
                 if (blockCrateService != null) {
-                    blockCrateService.showHologram(blockLoc);
+                    blockCrateService.showHologram(blockLoc, player.getUniqueId());
                 }
             }
         }.runTaskTimer(plugin, 0L, 1L);
