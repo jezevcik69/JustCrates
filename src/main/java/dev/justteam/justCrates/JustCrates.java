@@ -16,7 +16,7 @@ import dev.justteam.justCrates.listener.GuiListener;
 import dev.justteam.justCrates.placeholder.ExcellentCratesCompatibilityExpansion;
 import dev.justteam.justCrates.placeholder.JustCratesExpansion;
 import dev.justteam.justCrates.provider.ProviderRegistry;
-import dev.justteam.justCrates.utils.VersionChecker;
+import dev.justteam.justCrates.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -71,7 +71,7 @@ public final class JustCrates extends JavaPlugin {
             }
         }
 
-        new VersionChecker(this, "Jezevcik69", "JustCrates").checkForUpdates();
+        new VersionUtil(this, "Jezevcik69", "JustCrates").checkForUpdates();
 
         getLogger().info("JustCrates has been enabled!");
     }
