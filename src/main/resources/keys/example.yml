@@ -1,0 +1,13 @@
+id: "starter_key"
+virtual: false
+display:
+  name: "&eStarter Key"
+  lore:
+    - "&7Opens starter crate"
+item:
+  material: "TRIPWIRE_HOOK"
+  amount: 1
+  custom-model-data: 0
+  provider: ""
+  provider-item: ""
+

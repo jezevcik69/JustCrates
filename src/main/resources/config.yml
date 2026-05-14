@@ -1,0 +1,49 @@
+# =======================
+# JustCrates Configuration
+# =======================
+# Prefix used for all plugin messages.
+# =======================
+prefix: "&#6BF9FF&lᴊ&#76F6FC&lᴜ&#81F3F8&lꜱ&#8DF1F5&lᴛ&#98EEF1&lᴄ&#A3EBEE&lʀ&#95EFF2&lᴀ&#87F2F7&lᴛ&#79F6FB&lᴇ&#6BF9FF&lꜱ &8» &f"
+
+# =======================
+# GUI Settings
+# =======================
+gui:
+  roll:
+    # Default inventory size for crate roll GUI
+    default-size: 27
+
+    # Total duration of the roll animation in ticks (20 ticks = 1 second)
+    duration-ticks: 60
+
+    # Tick interval between animation frames
+    tick-interval: 2
+
+# =======================
+# Sounds
+# =======================
+# Sound keys used by roll/reward animations.
+# Use modern namespaced sounds supported by your server version.
+# =======================
+sounds:
+  roll: "ui.button.click"
+  reward: "entity.player.levelup"
+
+# =======================
+# Hologram Settings
+# =======================
+hologram:
+  # Maximum amount of hologram lines allowed per crate
+  max-lines: 6
+
+  # Player range in blocks where personal holograms are shown and placeholders are resolved
+  view-distance: 24
+
+  # Base height of the top hologram line above the crate block
+  height-offset: 1.75
+
+  # Fallback lines used when a crate does not define its own hologram text
+  default-lines:
+    - "&e%crate_name%"
+    - "&7Keys: &f%keys%"
+    - "&7store: &fyour.store.com"

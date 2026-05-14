@@ -1,0 +1,27 @@
+name: JustCrates
+version: '${version}'
+main: dev.meyba.justCrates.JustCrates
+api-version: '1.21'
+authors: [ Meyba._., Jezevcik20 ]
+description: Just a crates plugin.
+depend:
+  - JustLib
+softdepend:
+  - Oraxen
+  - ItemsAdder
+  - Nexo
+  - ModelEngine
+  - PlaceholderAPI
+
+commands:
+  justcrates:
+    description: JustCrates main command
+    usage: /<command>
+    aliases: [crates, crate]
+  key:
+    description: Give JustCrates key
+    usage: /<command> <id> [player] [amount]
+
+permissions:
+  justcrates.admin:
+    default: op
