@@ -70,6 +70,8 @@ blockCrateService.load();
         }
 
         new VersionUtil(this, "Jezevcik69", "JustCrates").checkForUpdates();
+
+        getLogger().info("JustCrates has been enabled!");
     }
 
     @Override
@@ -79,6 +81,7 @@ blockCrateService.load();
             blockCrateService.shutdown();
         }
         if (virtualKeyService != null) virtualKeyService.save();
+        getLogger().info("JustCrates has been disabled!");
     }
 
     public KeyService getKeyService() {
